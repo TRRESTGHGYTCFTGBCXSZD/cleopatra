@@ -116,13 +116,17 @@ function love.load()
 	["Player2Welcome"]=true,
 	}
 	if not bit32 then bit32 = require("bit") end
+	vox=require("data.scripts.sounds.VOX")
 	love.graphics.setBackgroundColor(0, 0, 0, 0)
 	bg = love.graphics.newImage("bg.png")
 	board = love.graphics.newImage("board.png")
 	errored = love.graphics.newImage("data/tex/error.png")
-	music = love.audio.newSource("data/music/shiningqueen.ogg", "stream")
-	music:setLooping(true)
-	music:play()
+	--music = love.audio.newSource("data/music/shiningqueen.ogg", "stream")
+	--music:setLooping(true)
+	--music:play()
+	Dano = love.filesystem.read("data/music/shiningqueen.vox")
+	Dan = vox(Dano,2000000,1)
+	Dan:Play(0,math.huge,1,math.huge,nil)
 	pieceimagetype = love_loadpieceassets()
 	print("this has passed correctly")
 	entrydl = 10
@@ -1248,6 +1252,7 @@ frames = frames + (dt*60)
 	updateplayer(p2)
 	frames = frames - 1
 	end
+	Dan:Update()
 end
 spriterelative = {{0,0,1,0,1}}
 function stabo()

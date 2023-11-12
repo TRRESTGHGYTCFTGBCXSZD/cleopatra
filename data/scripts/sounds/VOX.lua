@@ -5,15 +5,6 @@ local VOXVelocity = {16,17,19,21,23,25,28,31,34,37,41,45,50,55,60,66,73,80,88,97
 107,118,130,143,157,173,190,209,230,253,279,307,337,371,408,449,494,544,598,658,
 724,796,876,963,1060,1166,1282,1411,1552}
 
-function bitoper(a, b, oper)
-   local r, m, s = 0, 2^31
-   repeat
-      s,a,b = a+b+m, a%m, b%m
-      r,m = r + m*oper%(s-a-b), m/2
-   until m < 1
-   return r
-end
-
 local function GetStepSize(OldStepSize,Sample)
 	local StepSize
 	if math.fmod(Sample,8) == 4 then
@@ -33,6 +24,10 @@ end
 local function clamp(x, a, b)
     return x > b and b or x < a and a or x;
 end
+
+local function lerp(a,b,t) return a * (1-t) + b * t end
+
+local function inverselerp(a,b,t) return (t-a)/(b-a) end
 
 local function ProcessVOX(self)
 	self.CurrentPosition = self.CurrentPosition + 1
@@ -62,7 +57,7 @@ local function ProcessVOX(self)
 	self.ZeroChainPositive = math.fmod(self.Samples[self.CurrentPosition],8) < 8
 end
 
-return function(Sound,Hertz,MSM6295)
+return function(Sound,Hertz,MSM62xx,SwapNibbles)
 
 local GerioVOX = {}
 
@@ -83,19 +78,24 @@ GerioVOX.PreviousSampleLoudness = 0
 GerioVOX.ZeroChain = 0
 GerioVOX.ZeroChainPositive = false
 
-	if MSM6295 and MSM6295 == 1 then
+	if MSM62xx and MSM62xx == 1 then
 		Hertz = Hertz * (8000/1056000)
-	elseif MSM6295 and MSM6295 == 2 then
+	elseif MSM62xx and MSM62xx == 2 then
 		Hertz = Hertz * (6400/1056000)
 	else
 		Hertz = Hertz
 	end
 	GerioVOX.Buffer = love.sound.newSoundData(2048,Hertz,16,1)
-	GerioVOX.Qsource = love.audio.newQueueableSource(Hertz,16,1,2)
+	GerioVOX.Qsource = love.audio.newQueueableSource(Hertz,16,1,4)
 	for p = 1,string.len(Sound) do
 		local DualSample = string.byte(string.sub(Sound,p,p))
+		if SwapNibbles then -- MSM6258
+		table.insert(GerioVOX.Samples,math.fmod(DualSample,16))
+		table.insert(GerioVOX.Samples,math.floor(DualSample/16))
+		else -- MSM6295
 		table.insert(GerioVOX.Samples,math.floor(DualSample/16))
 		table.insert(GerioVOX.Samples,math.fmod(DualSample,16))
+		end
 	end
 
 function GerioVOX.Play(self,Position,EndPosition,Volume,Loop,LoopPosition) -- position on samples
@@ -144,18 +144,19 @@ function GerioVOX.Update(self)
 			--print(((self.CurrentSampleLoudness-2048)*(1/4096))*self.Volume)
 			self.PreviousSampleLoudness = self.CurrentSampleLoudness
 			for c = 1, self.Buffer:getChannelCount() do
-				self.Buffer:setSample(i, c, clamp(((self.CurrentSampleLoudness-2048)*(1/4096))*self.Volume,-1,1))
+				self.Buffer:setSample(i, c, clamp((lerp(-1,1,inverselerp(0,4095,self.CurrentSampleLoudness)))*self.Volume,-1,1))
 			end
 		-- queue it up
-			self.Qsource:queue(self.Buffer)
 			if self.CurrentPosition >= self.EndPosition or (not self.Samples[self.CurrentPosition]) then
 				if self.Loops > 1 then
 					self:Play(self.LoopPosition,self.EndPosition,self.Volume,self.Loops - 1,self.LoopPosition)
 				else
 					self.Playing = "Paused"
+					break
 				end
 			end
 		end
+		self.Qsource:queue(self.Buffer)
 		self.Qsource:play() -- keep playing so playback never stalls, even if there are underruns; no, this isn't heavy on processing.
 	end
 	elseif self.Playing == "Paused" then
