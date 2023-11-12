@@ -41,12 +41,12 @@ function love_loadpieceassets()
 	local patrakoi = "data/blocks/gems"
 	local files = love.filesystem.getDirectoryItems(patrakoi)
 	for k, file in ipairs(files) do
-		patrasono.Gem[file]=love_loadpieceasset(patrakoi.."/"..file)
+		patrasono.Gem[file]=love_loadpieceasset(patrakoi.."/"..file,false)
 	end
 	local patrakoi = "data/blocks/coffins"
 	local files = love.filesystem.getDirectoryItems(patrakoi)
 	for k, file in ipairs(files) do
-		patrasono.Coffin[file]=love_loadpieceasset(patrakoi.."/"..file)
+		patrasono.Coffin[file]=love_loadpieceasset(patrakoi.."/"..file,true)
 	end
 	local patrakoi = "data/blocks/mummies/small"
 	local files = love.filesystem.getDirectoryItems(patrakoi)
@@ -89,33 +89,63 @@ function love_loadpieceasset(loc,large)
 		return yoiiiiii
 	end
 end
+function DeductCredits1P(nmb)
+	if game and game["Run Service"] then
+		script.Parent.Credits1P.Value = script.Parent.Credits1P.Value - nmb
+	end
+end
+function DeductCredits2P(nmb)
+	if game and game["Run Service"] then
+		script.Parent.Credits2P.Value = script.Parent.Credits2P.Value - nmb
+	end
+end
 if love and love._version_major then
 function love.load()
 	--loadpieceasset("data/blocks/mummies/big/1")
 	--loadpieceasset("data/blocks/mummies/big/2")
 	frames = 0
 	frameticks = 0
+	MachineConfiguration={
+	["Credits1P"]=math.huge,
+	["Credits2P"]=math.huge,
+	["DualPlay"]=true,
+	["CreditsPerPlay"]=1,
+	["CreditsPerContinue"]=1,
+	["ChallengerWelcome"]=true,
+	["ContiuneAllowed"]=true,
+	["Player2Welcome"]=true,
+	}
 	if not bit32 then bit32 = require("bit") end
 	love.graphics.setBackgroundColor(0, 0, 0, 0)
 	bg = love.graphics.newImage("bg.png")
 	board = love.graphics.newImage("board.png")
-	music = love.audio.newSource("music.ogg", "stream")
+	errored = love.graphics.newImage("data/tex/error.png")
+	music = love.audio.newSource("data/music/shiningqueen.ogg", "stream")
 	music:setLooping(true)
 	music:play()
 	pieceimagetype = love_loadpieceassets()
-	error("this has passed correctly")
+	print("this has passed correctly")
 	entrydl = 10
 	timepassed = 10
+	audaauda={}
+	audaauda.selecto = love.audio.newSource("data/sound/select.wav", "static")
+	audaauda.decide = love.audio.newSource("data/sound/decide.wav", "static")
+	audaauda.dead = love.audio.newSource("data/sound/dead.wav", "static")
+	audaauda.land = love.audio.newSource("data/sound/bonk.wav", "static")
+	audaauda.rotate = love.audio.newSource("data/sound/rotate.wav", "static")
+	audaauda.covered = love.audio.newSource("data/sound/coverage.wav", "static")
+	audaauda.coverablebreak = love.audio.newSource("data/sound/blockbreak.wav", "static")
+	audaauda.gembreak = love.audio.newSource("data/sound/gembreak.wav", "static")
+	audaauda.mummybreak = love.audio.newSource("data/sound/lineclear.wav", "static")
 	controls = {["P1Left"]={"kbd","left"},["P1Right"]={"kbd","right"},["P1SoftDrop"]={"kbd","down"},["P1HardDrop"]={"kbd","up"},["P1CCW"]={"kbd","z"},["P1CW"]={"kbd","x"},["P1Hold"]={"kbd","space"},
 	["P2Left"]={"none","none"},["P2Right"]={"none","none"},["P2SoftDrop"]={"none","none"},["P2HardDrop"]={"none","none"},["P2CCW"]={"none","none"},["P2CW"]={"none","none"},["P2Hold"]={"none","none"},}
 	controleating = false
 	whatcontroleating = nil
-	piecetype=require("data.piecetype")
+	piecetype=require("data.blocks.piecetype")
 	p1 = {}
 	initplayer(p1)
 	p2 = {}
 	initplayer(p2)
-	renderstage = love.graphics.newCanvas(640,480)
 end
 end
 if game and game["Run Service"] then
@@ -123,7 +153,7 @@ if game and game["Run Service"] then
 	frameticks = 0
 	if not bit32 then bit32 = require("bit") end
 	pieceimagetype = roblox_loadpieceassets()
-	error("this has passed correctly")
+	print("this has passed correctly")
 	entrydl = 10
 	timepassed = 10
 	piecetype=require(script.piecetype)
@@ -131,7 +161,6 @@ if game and game["Run Service"] then
 	initplayer(p1)
 	p2 = {}
 	initplayer(p2)
-	renderstage = love.graphics.newCanvas(640,480)
 end
 function getgravityforlevel(level)
 	return (1/60)/((.8-((level-1)*.007))^(level-1))
@@ -187,11 +216,90 @@ function initplayer(player)
 	{nil,nil,nil,nil,nil,nil,nil,},
 	{nil,nil,nil,nil,nil,nil,nil,},
 	}
+	player.coverboard=
+	{
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
+	}
+	player.gemd={}
 	player.pieceactive=false
 	player.piecex=0
 	player.piecey=0
-	player.piececurrent={}
-	player.piecequeue={piecetype["GemBlock"],}
+	player.piececurrent=nil
+	player.piecequeue={
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	--------------------------------
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.TallGemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	--------------------------------
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.TallGemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.LGemBlock1),
+	ProcessPiece(piecetype.LGemBlock1),
+	ProcessPiece(piecetype.TallGemBlock),
+	ProcessPiece(piecetype.LGemBlock1),
+	ProcessPiece(piecetype.GemBlock),
+	--------------------------------
+	ProcessPiece(piecetype.TallGemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.Blocks2),
+	ProcessPiece(piecetype.TallGemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.LGemBlock1),
+	ProcessPiece(piecetype.Blocks2),
+	ProcessPiece(piecetype.TallGemBlock),
+	--------------------------------
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.TallGemBlock),
+	ProcessPiece(piecetype.CoffinBlock),
+	ProcessPiece(piecetype.LGemBlock2),
+	ProcessPiece(piecetype.CoffinBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	--------------------------------
+	ProcessPiece(piecetype.CoffinBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.TallGemBlock),
+	ProcessPiece(piecetype.CoffinBlock),
+	}
 	player.attackincoming=0
 	player.linecleartrigger=false
 	player.lineclears=0
@@ -210,15 +318,31 @@ function initplayer(player)
 	player.rightdas=10
 	player.sdinput=false
 	player.hdinput=false
-	player.donotnext=false
-	player.stillholding=false
-	player.amisafe=true
+	player.unstableboard=false
+	player.coverpopd=false
+	player.linepopd=false
+	player.smthistouching=true
 	player.downwardtime=0
 	player.movereset=15
 	player.rotreset=15
 	player.locktime=30
 	player.perfectclearframes=0
 	player.are=0
+	player.playsound={
+	["land"]=false,
+	["lock"]=false,
+	["rotateccw"]=false,
+	["rotatecw"]=false,
+	["coverablebreak"]=false,
+	["chain"]=false,
+	["gembreak"]=false,
+	["coffinbreak"]=false,
+	["mummybreak"]=false,
+	["covered"]=false,
+	["bonus"]=false,
+	["gravityland"]=false,
+	["dead"]=false,
+	}
 end
 function collidetest(board,x,y)
 	local clipping = false
@@ -226,7 +350,7 @@ function collidetest(board,x,y)
 		clipping = true
 	else
 		if y >= 1 then
-			if board[y][x] ~= "" then
+			if board[y][x] ~= nil then
 				clipping = true
 			end
 		end
@@ -238,11 +362,6 @@ function ShuffleInPlace(t)
         local j = love.math.random(i)
         t[i], t[j] = t[j], t[i]
     end
-end
-function sevenbag()
-	local bag = {"I","O","T","J","L","Z","S",}
-	ShuffleInPlace(bag)
-	return bag
 end
 function randomtableo(myTable)
 -- iterate over whole table to get all keys
@@ -257,87 +376,116 @@ function ProcessPiece(Piece)
 	local pieceyon = {{nil,nil,nil},{nil,nil,nil},{nil,nil,nil}}
 	for pooy = 1,3 do
 		for poox = 1,3 do
+			if Piece[pooy][poox] ~= nil then
 			if Piece[pooy][poox] == "BLS" then
 				pieceyon[pooy][poox] = {"BLS",randomtableo(pieceimagetype.Coverable.Small),{}}
+				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
 			end
 			if Piece[pooy][poox] == "BLT0" then
 				local Yojong = randomtableo(pieceimagetype.Coverable.Big)
 				pieceyon[pooy][poox] = {"BLT0H",Yojong,{}}
 				pieceyon[pooy+1][poox] = {"BLT0T",Yojong,{}}
+				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
+				pieceyon[pooy+1][poox][2].Create(pieceyon[pooy][poox][3])
 			end
 			if Piece[pooy][poox] == "BLT90" then
 				local Yojong = randomtableo(pieceimagetype.Coverable.Big)
 				pieceyon[pooy][poox+1] = {"BLT90H",Yojong,{}}
 				pieceyon[pooy][poox] = {"BLT90T",Yojong,{}}
+				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
+				pieceyon[pooy][poox+1][2].Create(pieceyon[pooy][poox][3])
 			end
 			if Piece[pooy][poox] == "BLT180" then
 				local Yojong = randomtableo(pieceimagetype.Coverable.Big)
 				pieceyon[pooy+1][poox] = {"BLT180H",Yojong,{}}
 				pieceyon[pooy][poox] = {"BLT180T",Yojong,{}}
+				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
+				pieceyon[pooy+1][poox][2].Create(pieceyon[pooy][poox][3])
 			end
 			if Piece[pooy][poox] == "BLT270" then
 				local Yojong = randomtableo(pieceimagetype.Coverable.Big)
 				pieceyon[pooy][poox] = {"BLT270H",Yojong,{}}
 				pieceyon[pooy][poox+1] = {"BLT270T",Yojong,{}}
+				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
+				pieceyon[pooy][poox+1][2].Create(pieceyon[pooy][poox][3])
 			end
 			if Piece[pooy][poox] == "GM" then
-				pieceyon[pooy][poox] = {"GM",randomtableo(pieceimagetype.Gem),{}}
+				pieceyon[pooy][poox] = {"GMS",randomtableo(pieceimagetype.Gem),{}}
+				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
 			end
 			if Piece[pooy][poox] == "CF0" then
 				local Yojong = randomtableo(pieceimagetype.Coffin)
-				pieceyon[pooy][poox] = {"CF0H",Yojong,{}}
-				pieceyon[pooy+1][poox] = {"CF0T",Yojong,{}}
+				pieceyon[pooy][poox] = {"CFT0H",Yojong,{}}
+				pieceyon[pooy+1][poox] = {"CFT0T",Yojong,{}}
+				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
+				pieceyon[pooy+1][poox][2].Create(pieceyon[pooy][poox][3])
 			end
 			if Piece[pooy][poox] == "CF90" then
 				local Yojong = randomtableo(pieceimagetype.Coffin)
-				pieceyon[pooy][poox+1] = {"CF90H",Yojong,{}}
-				pieceyon[pooy][poox] = {"CF90T",Yojong,{}}
+				pieceyon[pooy][poox+1] = {"CFT90H",Yojong,{}}
+				pieceyon[pooy][poox] = {"CFT90T",Yojong,{}}
+				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
+				pieceyon[pooy][poox+1][2].Create(pieceyon[pooy][poox][3])
 			end
 			if Piece[pooy][poox] == "CF180" then
 				local Yojong = randomtableo(pieceimagetype.Coffin)
-				pieceyon[pooy+1][poox] = {"CF180H",Yojong,{}}
-				pieceyon[pooy][poox] = {"CF180T",Yojong,{}}
+				pieceyon[pooy+1][poox] = {"CFT180H",Yojong,{}}
+				pieceyon[pooy][poox] = {"CFT180T",Yojong,{}}
+				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
+				pieceyon[pooy+1][poox][2].Create(pieceyon[pooy][poox][3])
 			end
 			if Piece[pooy][poox] == "CF270" then
 				local Yojong = randomtableo(pieceimagetype.Coffin)
-				pieceyon[pooy][poox] = {"CF270H",Yojong,{}}
-				pieceyon[pooy][poox+1] = {"CF270T",Yojong,{}}
+				pieceyon[pooy][poox] = {"CFT270H",Yojong,{}}
+				pieceyon[pooy][poox+1] = {"CFT270T",Yojong,{}}
+				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
+				pieceyon[pooy][poox+1][2].Create(pieceyon[pooy][poox][3])
 			end
 			if Piece[pooy][poox] == "MUS" then
 				pieceyon[pooy][poox] = {"MUS",randomtableo(pieceimagetype.Mummy.Small),{}}
+				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
 			end
 			if Piece[pooy][poox] == "MUT0" then
 				local Yojong = randomtableo(pieceimagetype.Mummy.Big)
 				pieceyon[pooy][poox] = {"MUT0H",Yojong,{}}
 				pieceyon[pooy+1][poox] = {"MUT0T",Yojong,{}}
+				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
+				pieceyon[pooy+1][poox][2].Create(pieceyon[pooy][poox][3])
 			end
 			if Piece[pooy][poox] == "MUT90" then
 				local Yojong = randomtableo(pieceimagetype.Mummy.Big)
 				pieceyon[pooy][poox+1] = {"MUT90H",Yojong,{}}
 				pieceyon[pooy][poox] = {"MUT90T",Yojong,{}}
+				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
+				pieceyon[pooy][poox+1][2].Create(pieceyon[pooy][poox][3])
 			end
 			if Piece[pooy][poox] == "MUT180" then
 				local Yojong = randomtableo(pieceimagetype.Mummy.Big)
 				pieceyon[pooy+1][poox] = {"MUT180H",Yojong,{}}
 				pieceyon[pooy][poox] = {"MUT180T",Yojong,{}}
+				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
+				pieceyon[pooy+1][poox][2].Create(pieceyon[pooy][poox][3])
 			end
 			if Piece[pooy][poox] == "MUT270" then
 				local Yojong = randomtableo(pieceimagetype.Mummy.Big)
 				pieceyon[pooy][poox] = {"MUT270H",Yojong,{}}
 				pieceyon[pooy][poox+1] = {"MUT270T",Yojong,{}}
+				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
+				pieceyon[pooy][poox+1][2].Create(pieceyon[pooy][poox][3])
+			end
 			end
 		end
 	end
 	return pieceyon
 end
-if love and love._version_major then
+if love and love._version_major then -- love2d controls
 function love.keypressed(key, scancode, isrepeat)
 	if controleating then
 	controls[whatcontroleating][1] = "kbd"
 	controls[whatcontroleating][2] = key
 	controleating = false
-	love.audio.stop(decided)
-	love.audio.play(decided)
+	love.audio.stop(audaauda.decide)
+	love.audio.play(audaauda.decide)
 	else
 	if controls.P1CCW[1] == "kbd" and key == controls.P1CCW[2] then
 		p1.ccwinput=true
@@ -432,8 +580,8 @@ function love.gamepadpressed(control, key)
 	controls[whatcontroleating][1] = control
 	controls[whatcontroleating][2] = key
 	controleating = false
-	love.audio.stop(decided)
-	love.audio.play(decided)
+	love.audio.stop(audaauda.decide)
+	love.audio.play(audaauda.decide)
 	else
 	if controls.P1CCW[1] == control and key == controls.P1CCW[2] then
 		p1.ccwinput=true
@@ -527,8 +675,8 @@ function love.gamepadaxis(control, key, activation)
 	if controleating and activation >= 0.5 then
 	controls[whatcontroleating][1] = control
 	controls[whatcontroleating][2] = key
-	love.audio.stop(decided)
-	love.audio.play(decided)
+	love.audio.stop(audaauda.decide)
+	love.audio.play(audaauda.decide)
 	else
 	if controls.P1CCW[1] == control and key == controls.P1CCW[2] then
 		p1.ccwinput=activation >= 0.5
@@ -577,102 +725,102 @@ end
 function love.mousepressed( x, y, button, istouch, presses )
 	if button ~= 1 then return end
 	if controleating then
-		love.audio.stop(dead)
-		love.audio.play(dead)
+		love.audio.stop(audaauda.dead)
+		love.audio.play(audaauda.dead)
 		controleating = false
 	elseif y < 16*torturey then
 		if 0 <= x and x < 16*torturex then
-			love.audio.stop(selected)
-			love.audio.play(selected)
+			love.audio.stop(audaauda.selecto)
+			love.audio.play(audaauda.selecto)
 			controleating = true
 			whatcontroleating = "P1CCW"
 		end
 		if 16*torturex <= x and x < 32*torturex then
-			love.audio.stop(selected)
-			love.audio.play(selected)
+			love.audio.stop(audaauda.selecto)
+			love.audio.play(audaauda.selecto)
 			controleating = true
 			whatcontroleating = "P1CW"
 		end
 		if 32*torturex <= x and x < 48*torturex then
-			love.audio.stop(selected)
-			love.audio.play(selected)
+			love.audio.stop(audaauda.selecto)
+			love.audio.play(audaauda.selecto)
 			controleating = true
 			whatcontroleating = "P1Left"
 		end
 		if 48*torturex <= x and x < 64*torturex then
-			love.audio.stop(selected)
-			love.audio.play(selected)
+			love.audio.stop(audaauda.selecto)
+			love.audio.play(audaauda.selecto)
 			controleating = true
 			whatcontroleating = "P1Right"
 		end
 		if 64*torturex <= x and x < 80*torturex then
-			love.audio.stop(selected)
-			love.audio.play(selected)
+			love.audio.stop(audaauda.selecto)
+			love.audio.play(audaauda.selecto)
 			controleating = true
 			whatcontroleating = "P1SoftDrop"
 		end
 		if 80*torturex <= x and x < 96*torturex then
-			love.audio.stop(selected)
-			love.audio.play(selected)
+			love.audio.stop(audaauda.selecto)
+			love.audio.play(audaauda.selecto)
 			controleating = true
 			whatcontroleating = "P1HardDrop"
 		end
 		if 96*torturex <= x and x < 112*torturex then
-			love.audio.stop(selected)
-			love.audio.play(selected)
+			love.audio.stop(audaauda.selecto)
+			love.audio.play(audaauda.selecto)
 			controleating = true
 			whatcontroleating = "P1Hold"
 		end
 		if 128*torturex <= x and x < 144*torturex then
-			love.audio.stop(selected)
-			love.audio.play(selected)
+			love.audio.stop(audaauda.selecto)
+			love.audio.play(audaauda.selecto)
 			controleating = true
 			whatcontroleating = "P2CCW"
 		end
 		if 144*torturex <= x and x < 160*torturex then
-			love.audio.stop(selected)
-			love.audio.play(selected)
+			love.audio.stop(audaauda.selecto)
+			love.audio.play(audaauda.selecto)
 			controleating = true
 			whatcontroleating = "P2CW"
 		end
 		if 160*torturex <= x and x < 176*torturex then
-			love.audio.stop(selected)
-			love.audio.play(selected)
+			love.audio.stop(audaauda.selecto)
+			love.audio.play(audaauda.selecto)
 			controleating = true
 			whatcontroleating = "P2Left"
 		end
 		if 176*torturex <= x and x < 192*torturex then
-			love.audio.stop(selected)
-			love.audio.play(selected)
+			love.audio.stop(audaauda.selecto)
+			love.audio.play(audaauda.selecto)
 			controleating = true
 			whatcontroleating = "P2Right"
 		end
 		if 192*torturex <= x and x < 208*torturex then
-			love.audio.stop(selected)
-			love.audio.play(selected)
+			love.audio.stop(audaauda.selecto)
+			love.audio.play(audaauda.selecto)
 			controleating = true
 			whatcontroleating = "P2SoftDrop"
 		end
 		if 208*torturex <= x and x <= 224*torturex then
-			love.audio.stop(selected)
-			love.audio.play(selected)
+			love.audio.stop(audaauda.selecto)
+			love.audio.play(audaauda.selecto)
 			controleating = true
 			whatcontroleating = "P2HardDrop"
 		end
 		if 224*torturex <= x and x <= 240*torturex then
-			love.audio.stop(selected)
-			love.audio.play(selected)
+			love.audio.stop(audaauda.selecto)
+			love.audio.play(audaauda.selecto)
 			controleating = true
 			whatcontroleating = "P2Hold"
 		end
 	end
 end
 end
-function piececollidetest(board,piecetyperr,rotation,x,y)
+function piececollidetest(board,piece,rotation,x,y)
 	clipping = false
-	for pies2 = 1 ,4 do
-		for pies1 = 1 ,4 do
-			if piecetype[piecetyperr][rotation][pies2][pies1] == 1 then
+	for pies2 = 1 ,3 do
+		for pies1 = 1 ,3 do
+			if piece[pies2][pies1] ~= nil then
 				if collidetest(board,x+pies1-1,y+pies2-1) == true then
 					clipping = true
 				end
@@ -681,31 +829,18 @@ function piececollidetest(board,piecetyperr,rotation,x,y)
 	end
 	return clipping
 end
-function tspintest(board,rotation,x,y)
-	local tspin = "no"
-	local tspina = collidetest(board,x,y)
-	local tspinb = collidetest(board,x+2,y)
-	local tspinc = collidetest(board,x,y+2)
-	local tspind = collidetest(board,x+2,y+2)
-	if rotation == 0 or rotation == 2 then
-		if tspina and tspinb and (tspinc or tspind) then
-			tspin = rotation == 0 and "full" or "mini"
-		elseif tspinc and tspind and (tspina or tspinb) then
-			tspin = rotation == 2 and "full" or "mini"
-		end
-	elseif rotation == 1 or rotation == 3 then
-		if tspinb and tspind and (tspina or tspinc) then
-			tspin = rotation == 1 and "full" or "mini"
-		elseif tspina and tspinc and (tspinb or tspind) then
-			tspin = rotation == 3 and "full" or "mini"
-		end
-	end
-	return tspin
-end
 function modmod(a,b)return a-math.floor(a/b)*b end
+function floodfill(checkboard,x,y,value)
+	if checkboard[y] and checkboard[y][x] and checkboard[y][x][2] == false then
+		checkboard[y][x][1] = value
+		checkboard[y][x][2] = true
+		floodfill(checkboard,x+1,y,value)
+		floodfill(checkboard,x-1,y,value)
+		floodfill(checkboard,x,y+1,value)
+		floodfill(checkboard,x,y-1,value)
+	end
+end
 function updateplayer(player)
-	player.perfectclearframes=player.perfectclearframes-1
-	player.lastpieceplacedglow=player.lastpieceplacedglow-1
 	player.are = player.are - 1
 	if player.pieceactive == false and player.dead == false and player.are > 0 then
 		if (not player.leftinput) or (player.leftinput and player.rightinput) then
@@ -720,20 +855,154 @@ function updateplayer(player)
 		if player.rightinput and (not(player.leftinput and player.rightinput)) then
 			player.rightdas = player.rightdas - 1
 		end
+		player.lineclears = 0
+		player.linecleartrigger = true
+		player.unstableboard = false
+		player.coverpopd = false
+		player.linepopd = false
+		local pccheck = true
+		for ita = 25,1,-1 do -- unstablecheck
+			for ite = 1,7 do
+				if player.board[ita][ite] and (string.sub(player.board[ita][ite][1],3,-1) == "S" or string.sub(player.board[ita][ite][1],3,-2) == "T0" or string.sub(player.board[ita][ite][1],3,-2) == "T180") then
+					if not collidetest(player.board,ite,ita+1) then
+						player.board[ita+1][ite],player.board[ita][ite] = player.board[ita][ite],nil
+						player.unstableboard = true
+						player.coverboard[ita+1][ite] = {0,true}
+					elseif player.coverboard[ita][ite][2] == true then
+						player.coverboard[ita][ite] = {0,false}
+						player.playsound.gravityland = true
+					end
+				elseif player.board[ita][ite] and (string.sub(player.board[ita][ite][1],3,-1) == "T90T" or string.sub(player.board[ita][ite][1],3,-1) == "T270H") then
+					if not (collidetest(player.board,ite,ita+1) or collidetest(player.board,ite+1,ita+1)) then
+						player.board[ita+1][ite],player.board[ita][ite] = player.board[ita][ite],nil
+						player.board[ita+1][ite+1],player.board[ita][ite+1] = player.board[ita][ite+1],nil
+						player.unstableboard = true
+						player.coverboard[ita+1][ite] = {0,true}
+						player.coverboard[ita+1][ite+1] = {0,true}
+					elseif player.coverboard[ita][ite] == {0,true} then
+						player.coverboard[ita][ite] = {0,false}
+						player.playsound.gravityland = true
+					end
+				end
+			end
+		end
+		if player.unstableboard then
+		player.are = entrydl
+		end
+		if player.unstableboard == false then
+		for ita = 1,25 do -- coverpop
+			for ite = 1,7 do
+				player.coverboard[ita][ite] = {(ita*7)+ite,false}
+				if player.board[ita][ite] and string.sub(player.board[ita][ite][1],1,2) == "BL" then
+					player.coverboard[ita][ite] = {-1,true}
+				end
+			end
+		end
+			for ite = 1,7 do
+				if player.coverboard[1][ite][1] ~= -1 then
+					floodfill(player.coverboard,ite,1,0)
+				end
+			end
+		for ita = 2,25 do
+			for ite = 1,7 do
+				if player.coverboard[ita][ite][2] == false then
+					floodfill(player.coverboard,ite,ita,player.coverboard[ita][ite][1])
+				end
+			end
+		end
+		for ita = 1,25 do
+			for ite = 1,7 do
+					player.gemd[(ita*7)+ite] = false
+			end
+		end
+		for ita = 1,25 do
+			for ite = 1,7 do
+				if player.board[ita][ite] and player.coverboard[ita][ite][1] ~= 0 and (string.sub(player.board[ita][ite][1],1,2) == "GM" or string.sub(player.board[ita][ite][1],1,2) == "CF") then
+					player.gemd[player.coverboard[ita][ite][1]] = true
+				end
+			end
+		end
+		for ita = 1,25 do
+			for ite = 1,7 do
+				if player.gemd[player.coverboard[ita][ite][1]] then
+					player.board[ita][ite] = nil
+					player.coverpopd = true
+					player.are = entrydl
+					player.playsound.covered = true
+				end
+			end
+		end
+		if player.coverpopd == false then
+		for ita = 1,25 do --linepop
+			for ite = 1,7 do
+				player.coverboard[ita][ite] = {0,false}
+			end
+		end
+		for ita = 1,25 do 
+			if player.board[ita][1] then
+			local checkforsmth = string.sub(player.board[ita][1][1],1,2)
+			local isgonnaliner = true
+			for ite = 1,7 do
+				if (not player.board[ita][ite]) or string.sub(player.board[ita][ite][1],1,2) ~= checkforsmth then
+					isgonnaliner = false
+				end
+			end
+			if isgonnaliner then
+				for ite = 1,7 do
+					if player.board[ita][ite] and (string.sub(player.board[ita][ite][1],3,-1) == "T0T" or string.sub(player.board[ita][ite][1],3,-1) == "T180H") then
+						player.coverboard[ita-1][ite][2] = true
+					end
+					if player.board[ita][ite] and (string.sub(player.board[ita][ite][1],3,-1) == "T0H" or string.sub(player.board[ita][ite][1],3,-1) == "T180T") then
+						player.coverboard[ita+1][ite][2] = true
+					end
+					player.coverboard[ita][ite][2] = true
+				end
+			end
+			else
+			end
+		end
+		for ita = 1,25 do
+			for ite = 1,7 do
+				if player.coverboard[ita][ite][2] == true then
+					if string.sub(player.board[ita][ite][1],1,2) == "BL" then player.playsound.coverablebreak = true end
+					if string.sub(player.board[ita][ite][1],1,2) == "GM" then player.playsound.gembreak = true end
+					if string.sub(player.board[ita][ite][1],1,2) == "CF" then player.playsound.coffinbreak = true end
+					if string.sub(player.board[ita][ite][1],1,2) == "MU" then player.playsound.mummybreak = true end
+					player.board[ita][ite] = nil
+					player.linepopd = true
+					player.are = entrydl
+				end
+			end
+		end
+		end
+		end
+		for ita = 1,25 do
+			for ite = 1,7 do
+				if player.board[ita][ite] ~= nil then
+					pccheck = false
+				end
+			end
+		end
+		--print(player.unstableboard)
+		--print(player.coverpopd)
+		--print(player.linepopd)
+		--print(player.are)
+		player.perfectclear = pccheck
+		if pccheck then
+			player.perfectclearframes=120
+		end
 	elseif player.pieceactive == false and player.dead == false and player.are <= 0 then
 		player.pieceactive = true
 		if not player.donotnext then
 			player.piececurrent = table.remove(player.piecequeue,1)
-			if #player.piecequeue < 6 then
-				for _, h in pairs(sevenbag()) do
-					table.insert(player.piecequeue,h)
-				end
+			if #player.piecequeue < 3 then
+				table.insert(player.piecequeue,ProcessPiece(randomtableo(piecetype)))
 			end
 		end
-		player.piecex = 4
-		player.piecey = 19
+		player.piecex = 3
+		player.piecey = 10
 		player.piecerotation = 0
-		player.downwardtime = 1
+		player.downwardtime = 0
 		player.locktime = 30
 		player.movereset = 15
 		player.rotreset = 15
@@ -745,53 +1014,14 @@ function updateplayer(player)
 		player.ccwlock = true
 		player.cwlock = true
 		end
-		if player.ccwinput ~= player.cwinput then
-			if player.ccwinput then
-				if not piececollidetest(player.board,player.piececurrent,3,4,19) then
-			love.audio.stop(prerotate)
-			love.audio.play(prerotate)
-				player.piecerotation = 3
-				end
-				player.ccwlock = true
-			end
-			if player.cwinput then
-				if not piececollidetest(player.board,player.piececurrent,1,4,19) then
-			love.audio.stop(prerotate)
-			love.audio.play(prerotate)
-				player.piecerotation = 1
-				end
-				player.cwlock = true
-			end
-		end
-		if (player.holdinput or player.stillholding) and (not player.donotnext) then
-			love.audio.stop(prehold)
-			love.audio.play(prehold)
-		end
-		if (player.holdinput or player.stillholding) then
-			player.holdlock = true
-			player.donotnext = false
-			player.stillholding = false
-			if player.holdpiece == "E" then
-				player.holdpiece = player.piececurrent
-				player.piececurrent = table.remove(player.piecequeue,1)
-				if #player.piecequeue < 6 then
-					for _, h in pairs(sevenbag()) do
-						table.insert(player.piecequeue,h)
-					end
-				end
-			else
-				player.holdpiece, player.piececurrent = player.piececurrent, player.holdpiece
-			end
-		end
 		if piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey) then
 			player.dead = true
-			love.audio.stop(dead)
-			love.audio.play(dead)
+			player.playsound.dead = true
 		end
 	end
 	if player.pieceactive == true and player.dead == false then
 		
-		player.downwardtime=player.downwardtime+getgravityforlevel(10)
+		player.downwardtime=player.downwardtime+0
 		
 		if (not player.leftinput) or (player.leftinput and player.rightinput) then
 			player.leftdas = 10
@@ -806,13 +1036,10 @@ function updateplayer(player)
 					player.piecex = player.piecex + 1
 				end
 				if ishemoving then
-			love.audio.stop(move)
-			love.audio.play(move)
 				end
 				if player.locktime < 30 and ishemoving then
 					player.locktime = 30
 					player.movereset = player.movereset - 1
-					player.tspin = "no"
 				end
 			end
 			player.leftdas = player.leftdas - 1
@@ -831,13 +1058,10 @@ function updateplayer(player)
 					player.piecex = player.piecex - 1
 				end
 				if ishemoving then
-			love.audio.stop(move)
-			love.audio.play(move)
 				end
 				if player.locktime < 30 and ishemoving then
 					player.locktime = 30
 					player.movereset = player.movereset - 1
-					player.tspin = "no"
 				end
 			end
 			player.rightdas = player.rightdas - 1
@@ -849,46 +1073,59 @@ function updateplayer(player)
 		
 		if player.ccwinput and (not player.ccwlock) then
 			player.ccwlock = true
-			local kicklol = player.piecerotation
-			local kicksum = 0
-			player.piecerotation = modmod(player.piecerotation-1,4)
-			if piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey) then
-			while piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey) do
-				kicksum = kicksum + 1
-				if kicksum > 4 then
-					player.piecerotation = modmod(player.piecerotation+1,4)
-				else
-					if player.piececurrent == "I" then
-						player.piecex = player.piecex+ipiecekicks["CCW"][kicklol][kicksum][1]
-						player.piecey = player.piecey-ipiecekicks["CCW"][kicklol][kicksum][2]
-						if piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey) then
-							player.piecex = player.piecex-ipiecekicks["CCW"][kicklol][kicksum][1]
-							player.piecey = player.piecey+ipiecekicks["CCW"][kicklol][kicksum][2]
+			local rotatedpiece = deepCopy({{player.piececurrent[1][3],player.piececurrent[2][3],player.piececurrent[3][3]},{player.piececurrent[1][2],player.piececurrent[2][2],player.piececurrent[3][2]},{player.piececurrent[1][1],player.piececurrent[2][1],player.piececurrent[3][1]},})
+			for dfgdgh1 = 1,3 do
+				for dfgdgh2 = 1,3 do
+					if rotatedpiece[dfgdgh2][dfgdgh1] then
+					if string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],3,-1) == "T0H" then
+						rotatedpiece[dfgdgh2][dfgdgh1][1] = string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],1,2).."T270H"
+					elseif string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],3,-1) == "T90H" then
+						rotatedpiece[dfgdgh2][dfgdgh1][1] = string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],1,2).."T0H"
+					elseif string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],3,-1) == "T180H" then
+						rotatedpiece[dfgdgh2][dfgdgh1][1] = string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],1,2).."T90H"
+					elseif string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],3,-1) == "T270H" then
+						rotatedpiece[dfgdgh2][dfgdgh1][1] = string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],1,2).."T180H"
+					elseif string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],3,-1) == "T0T" then
+						rotatedpiece[dfgdgh2][dfgdgh1][1] = string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],1,2).."T270T"
+					elseif string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],3,-1) == "T90T" then
+						rotatedpiece[dfgdgh2][dfgdgh1][1] = string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],1,2).."T0T"
+					elseif string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],3,-1) == "T180T" then
+						rotatedpiece[dfgdgh2][dfgdgh1][1] = string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],1,2).."T90T"
+					elseif string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],3,-1) == "T270T" then
+						rotatedpiece[dfgdgh2][dfgdgh1][1] = string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],1,2).."T180T"
+					end
+					end
+				end
+			end
+			if piececollidetest(player.board,rotatedpiece,player.piecerotation,player.piecex,player.piecey) then
+				if piececollidetest(player.board,rotatedpiece,player.piecerotation,player.piecex-1,player.piecey) then
+					if piececollidetest(player.board,rotatedpiece,player.piecerotation,player.piecex+1,player.piecey) then
+						if piececollidetest(player.board,rotatedpiece,player.piecerotation,player.piecex,player.piecey-1) then
+							if piececollidetest(player.board,rotatedpiece,player.piecerotation,player.piecex,player.piecey+1) then
+								
+							else
+								player.piecey=player.piecey+1
+								player.piececurrent = rotatedpiece
+								player.playsound.rotateccw = true
+							end
+						else
+							player.piecey=player.piecey-1
+							player.piececurrent = rotatedpiece
+							player.playsound.rotateccw = true
 						end
 					else
-						player.piecex = player.piecex+piecekicks["CCW"][kicklol][kicksum][1]
-						player.piecey = player.piecey-piecekicks["CCW"][kicklol][kicksum][2]
-						if piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey) then
-							player.piecex = player.piecex-piecekicks["CCW"][kicklol][kicksum][1]
-							player.piecey = player.piecey+piecekicks["CCW"][kicklol][kicksum][2]
-						end
+						player.piecex=player.piecex+1
+						player.piececurrent = rotatedpiece
+						player.playsound.rotateccw = true
 					end
+				else
+					player.piecex=player.piecex-1
+					player.piececurrent = rotatedpiece
+					player.playsound.rotateccw = true
 				end
-			end
-			end
-			if kicksum <= 4 then
-				love.audio.stop(rotate)
-				love.audio.play(rotate)
-				if player.piececurrent == "T" then
-					player.tspin = tspintest(player.board,player.piecerotation,player.piecex,player.piecey)
-					if kicksum == 4 and player.tspin == "mini" then
-						player.tspin = "full"
-					end
-				end
-				if player.locktime < 30 then
-					player.locktime = 30
-					player.rotreset = player.rotreset - 1
-				end
+			else
+				player.piececurrent = rotatedpiece
+				player.playsound.rotateccw = true
 			end
 		end
 		
@@ -898,53 +1135,65 @@ function updateplayer(player)
 		
 		if player.cwinput and (not player.cwlock) then
 			player.cwlock = true
-			local kicklol = player.piecerotation
-			local kicksum = 0
-			player.piecerotation = modmod(player.piecerotation+1,4)
-			if piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey) then
-			while piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey) do
-				kicksum = kicksum + 1
-				if kicksum > 4 then
-				player.piecerotation = modmod(player.piecerotation-1,4)
-				else
-					if player.piececurrent == "I" then
-						player.piecex = player.piecex+ipiecekicks["CW"][kicklol][kicksum][1]
-						player.piecey = player.piecey-ipiecekicks["CW"][kicklol][kicksum][2]
-						if piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey) then
-							player.piecex = player.piecex-ipiecekicks["CW"][kicklol][kicksum][1]
-							player.piecey = player.piecey+ipiecekicks["CW"][kicklol][kicksum][2]
+			local rotatedpiece = deepCopy({{player.piececurrent[3][1],player.piececurrent[2][1],player.piececurrent[1][1]},{player.piececurrent[3][2],player.piececurrent[2][2],player.piececurrent[1][2]},{player.piececurrent[3][3],player.piececurrent[2][3],player.piececurrent[1][3]},})
+			for dfgdgh1 = 1,3 do
+				for dfgdgh2 = 1,3 do
+					if rotatedpiece[dfgdgh2][dfgdgh1] then
+					if string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],3,-1) == "T0H" then
+						rotatedpiece[dfgdgh2][dfgdgh1][1] = string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],1,2).."T90H"
+					elseif string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],3,-1) == "T90H" then
+						rotatedpiece[dfgdgh2][dfgdgh1][1] = string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],1,2).."T180H"
+					elseif string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],3,-1) == "T180H" then
+						rotatedpiece[dfgdgh2][dfgdgh1][1] = string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],1,2).."T270H"
+					elseif string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],3,-1) == "T270H" then
+						rotatedpiece[dfgdgh2][dfgdgh1][1] = string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],1,2).."T0H"
+					elseif string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],3,-1) == "T0T" then
+						rotatedpiece[dfgdgh2][dfgdgh1][1] = string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],1,2).."T90T"
+					elseif string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],3,-1) == "T90T" then
+						rotatedpiece[dfgdgh2][dfgdgh1][1] = string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],1,2).."T180T"
+					elseif string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],3,-1) == "T180T" then
+						rotatedpiece[dfgdgh2][dfgdgh1][1] = string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],1,2).."T270T"
+					elseif string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],3,-1) == "T270T" then
+						rotatedpiece[dfgdgh2][dfgdgh1][1] = string.sub(rotatedpiece[dfgdgh2][dfgdgh1][1],1,2).."T0T"
+					end
+					end
+				end
+			end
+			if piececollidetest(player.board,rotatedpiece,player.piecerotation,player.piecex,player.piecey) then
+				if piececollidetest(player.board,rotatedpiece,player.piecerotation,player.piecex+1,player.piecey) then
+					if piececollidetest(player.board,rotatedpiece,player.piecerotation,player.piecex-1,player.piecey) then
+						if piececollidetest(player.board,rotatedpiece,player.piecerotation,player.piecex,player.piecey-1) then
+							if piececollidetest(player.board,rotatedpiece,player.piecerotation,player.piecex,player.piecey+1) then
+								
+							else
+								player.piecey=player.piecey+1
+								player.piececurrent = rotatedpiece
+								player.playsound.rotatecw = true
+							end
+						else
+							player.piecey=player.piecey-1
+							player.piececurrent = rotatedpiece
+							player.playsound.rotatecw = true
 						end
 					else
-						player.piecex = player.piecex+piecekicks["CW"][kicklol][kicksum][1]
-						player.piecey = player.piecey-piecekicks["CW"][kicklol][kicksum][2]
-						if piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey) then
-							player.piecex = player.piecex-piecekicks["CW"][kicklol][kicksum][1]
-							player.piecey = player.piecey+piecekicks["CW"][kicklol][kicksum][2]
-						end
+						player.piecex=player.piecex-1
+						player.piececurrent = rotatedpiece
+						player.playsound.rotatecw = true
 					end
+				else
+					player.piecex=player.piecex+1
+					player.piececurrent = rotatedpiece
+					player.playsound.rotatecw = true
 				end
-			end
-			end
-			if kicksum <= 4 then
-				love.audio.stop(rotate)
-				love.audio.play(rotate)
-				if player.piececurrent == "T" then
-					player.tspin = tspintest(player.board,player.piecerotation,player.piecex,player.piecey)
-					if kicksum == 4 and player.tspin == "mini" then
-						player.tspin = "full"
-					end
-				end
-				if player.locktime < 30 then
-					player.locktime = 30
-					player.rotreset = player.rotreset - 1
-				end
+			else
+				player.piececurrent = rotatedpiece
+				player.playsound.rotatecw = true
 			end
 		end
 		
 		if piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey+1) then
 			if player.locktime == 30 then
-			love.audio.stop(floored)
-			love.audio.play(floored)
+				player.playsound.land = true
 			end
 			player.downwardtime=0
 			player.locktime=player.locktime-1
@@ -970,104 +1219,23 @@ function updateplayer(player)
 				player.piecey = player.piecey+1
 			end
 			player.piecey = player.piecey-1
-			player.pieceactive = false
-			player.amisafe = false
-			for pies2 = 1 ,4 do
-				for pies1 = 1 ,4 do
-					if (piecetype[player.piececurrent][player.piecerotation][pies2][pies1] == 1) and (player.piecey+pies2-1 >= 1) then
-						player.board[player.piecey+pies2-1][player.piecex+pies1-1] = player.piececurrent
-						if player.piecey+pies2 >= 22 then
-							player.amisafe = true
-						end
+			for pies2 = 1 ,3 do
+				for pies1 = 1 ,3 do
+					if player.piececurrent[pies2][pies1] ~= nil then
+						player.board[player.piecey+pies2-1][player.piecex+pies1-1],player.piececurrent[pies2][pies1]=player.piececurrent[pies2][pies1],nil
 					end
 				end
 			end
-			love.audio.stop(softlock)
-			love.audio.play(softlock)
-		end
-		
-		if player.hdinput then
-			while piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey) == false do
-				player.piecey = player.piecey+1
-			end
-			player.piecey = player.piecey-1
 			player.pieceactive = false
-			player.hdinput = false
-			player.amisafe = false
-			for pies2 = 1 ,4 do
-				for pies1 = 1 ,4 do
-					if (piecetype[player.piececurrent][player.piecerotation][pies2][pies1] == 1) and (player.piecey+pies2-1 >= 1) then
-						player.board[player.piecey+pies2-1][player.piecex+pies1-1] = player.piececurrent
-						if player.piecey+pies2 >= 22 then
-							player.amisafe = true
-						end
-					end
-				end
-			end
-			love.audio.stop(lock)
-			love.audio.play(lock)
-			love.audio.stop(softlock)
-			love.audio.play(softlock)
-		end
-		
-		if player.holdinput and (not (player.holdlock or player.hdinput)) then
-			player.pieceactive = false
-			player.donotnext = true
-			player.stillholding = true
 		end
 	end
-	if player.pieceactive == false and (not player.stillholding) and player.dead == false and player.are <= 0 then
-		player.lastpieceplacedglow=20
-		player.lastpieceplacedx=player.piecex
-		player.lastpieceplacedy=player.piecey
-		player.lastpieceplaced=player.piececurrent
-		player.linecleartrigger = true
+	if player.pieceactive == false and player.dead == false and player.are <= 0 then
+		for ita = 1,25 do -- clear cover
+			for ite = 1,7 do
+				player.coverboard[ita][ite] = {0,false}
+			end
+		end
 		player.are = entrydl
-		player.lineclears = 0
-		local pccheck = true
-		for ita = 1,40 do
-			if not tablltablltabllcontains(player.board[ita],"E") then
-				table.remove(player.board,ita)
-				table.insert(player.board,1,{"E","E","E","E","E","E","E","E","E","E",})
-				player.lineclears = player.lineclears + 1
-			end
-			for ite = 1,10 do
-				if player.board[ita][ite] ~= "E" then
-					pccheck = false
-				end
-			end
-		end
-		player.perfectclear = pccheck
-		if pccheck then
-			player.perfectclearframes=120
-		end
-		if player.lineclears > 0 then
-			player.amisafe=true
-			love.audio.stop(lineclear)
-			love.audio.play(lineclear)
-			if player.tspin == "full" then
-				love.audio.stop(tspinnotify)
-				love.audio.play(tspinnotify)
-			end
-			if player.lineclears == 1 then
-				love.audio.stop(lineclearsingle)
-				love.audio.play(lineclearsingle)
-			elseif player.lineclears == 2 then
-				love.audio.stop(linecleardouble)
-				love.audio.play(linecleardouble)
-			elseif player.lineclears == 3 then
-				love.audio.stop(linecleartriple)
-				love.audio.play(linecleartriple)
-			elseif player.lineclears == 4 then
-				love.audio.stop(lineclearquad)
-				--love.audio.play(lineclearquad)
-			end
-		end
-		if not player.amisafe then
-			player.dead = true
-			love.audio.stop(dead)
-			love.audio.play(dead)
-		end
 	end
 end
 resettime = 300
@@ -1076,207 +1244,88 @@ function cleopatra_update(dt)
 frames = frames + (dt*60)
 	while frames > 1 do
 	frameticks = frameticks + 1
-	if not (p1.dead or p2.dead) then
-		resettime = 300
-	end
-	if not (p1.dead or p2.dead) or resettime > 240 then
-		updateplayer(p1)
-		updateplayer(p2)
-	end
-	if (p1.dead or p2.dead) and winner == "none" then
-		if p1.dead and p2.dead then
-			winner = "draw"
-		elseif p2.dead then
-			winner = "p1"
-		elseif p1.dead then
-			winner = "p2"
-		end
-	end
-	if p1.dead or p2.dead then
-		love.audio.stop(music)
-		resettime = resettime - 1
-		if resettime == 240 then
-			p1.pieceactive = false
-			p2.pieceactive = false
-			if winner == "draw" then
-				love.audio.stop(finishdraw)
-				love.audio.play(finishdraw)
-			else
-				love.audio.stop(finish)
-				love.audio.play(finish)
-			end
-			if winner == "draw" then
-				love.audio.stop(finishdrawcom)
-				love.audio.play(finishdrawcom)
-			elseif winner == "p1" then
-				love.audio.stop(finish1p)
-				love.audio.play(finish1p)
-			elseif winner == "p2" then
-				love.audio.stop(finish2p)
-				love.audio.play(finish2p)
-			end
-		end
-		if resettime <= 0 then
-			initplayer(p1)
-			initplayer(p2)
-			winner = "none"
-			love.audio.play(music)
-		end
-	end
-	if p1.linecleartrigger then
-		p1.linecleartrigger = false
-		if p1.lineclears > 0 then
-			p1.combo = p1.combo + 1
-			if p1.lineclears >= 4 or p1.tspin ~= "no" then
-				p1.btbs = p1.btbs + 1
-			else
-				p1.btbs = -1
-			end
-			if p1.lineclears >= 2 or p1.combo >= 2 or p1.tspin == "full" then
-				local reattackeris = p1.lineclears
-				if p1.lineclears < 4 and (not (p1.tspin == "full")) then reattackeris = reattackeris - 1 end
-				if p1.tspin == "full" then reattackeris = reattackeris * 2 end
-				if p1.btbs >= 1 then reattackeris = reattackeris + 1 end
-				if p1.combo >= 2 then reattackeris = reattackeris + 1 end
-				if p1.combo >= 4 then reattackeris = reattackeris + 1 end
-				if p1.combo >= 6 then reattackeris = reattackeris + 1 end
-				if p1.combo >= 8 then reattackeris = reattackeris + 1 end
-				if p1.combo >= 11 then reattackeris = reattackeris + 1 end
-				if p1.perfectclear then reattackeris = 10 end
-				p1.attackincoming = p1.attackincoming - reattackeris
-				if p1.attackincoming < 0 then
-					p2.attackincoming = p2.attackincoming - p1.attackincoming
-					p1.attackincoming = 0
-				end
-			end
-		else
-			p1.combo = -1
-			local attackibility = 4
-			while p1.attackincoming > 0 and attackibility > 0 do
-				for ite = 1,10 do
-					if p1.board[1][ite] ~= "E" then
-						p1.dead = true
-						love.audio.stop(vanishdead)
-						love.audio.play(vanishdead)
-					end
-				end
-				table.remove(p1.board,1)
-				table.insert(p1.board,{"G","G","G","G","G","G","G","G","G","G",})
-				p1.board[40][love.math.random(1,10)] = "E"
-				p1.attackincoming = p1.attackincoming - 1
-				attackibility = attackibility - 1
-				love.audio.stop(garbagekick)
-				love.audio.play(garbagekick)
-			end
-		end
-	end
-	if p2.linecleartrigger then
-		p2.linecleartrigger = false
-		if p2.lineclears > 0 then
-			p2.combo = p2.combo + 1
-			if p2.lineclears >= 4 or p2.tspin ~= "no" then
-				p2.btbs = p2.btbs + 1
-			else
-				p2.btbs = -1
-			end
-			if p2.lineclears >= 2 or p2.combo >= 2 or p2.tspin == "full" then
-				local reattackeris = p2.lineclears
-				if p2.lineclears < 4 and (not (p1.tspin == "full")) then reattackeris = reattackeris - 1 end
-				if p2.tspin == "full" then reattackeris = reattackeris * 2 end
-				if p2.btbs >= 1 then reattackeris = reattackeris + 1 end
-				if p2.combo >= 2 then reattackeris = reattackeris + 1 end
-				if p2.combo >= 4 then reattackeris = reattackeris + 1 end
-				if p2.combo >= 6 then reattackeris = reattackeris + 1 end
-				if p2.combo >= 8 then reattackeris = reattackeris + 1 end
-				if p2.combo >= 11 then reattackeris = reattackeris + 1 end
-				if p2.perfectclear then reattackeris = 10 end
-				p2.attackincoming = p2.attackincoming - reattackeris
-				if p2.attackincoming < 0 then
-					p1.attackincoming = p1.attackincoming - p2.attackincoming
-					p2.attackincoming = 0
-				end
-			end
-		else
-			p2.combo = -1
-			local attackibility = 4
-			while p2.attackincoming > 0 and attackibility > 0 do
-				for ite = 1,10 do
-					if p2.board[1][ite] ~= "E" then
-						p2.dead = true
-						love.audio.stop(vanishdead)
-						love.audio.play(vanishdead)
-					end
-				end
-				table.remove(p2.board,1)
-				table.insert(p2.board,{"G","G","G","G","G","G","G","G","G","G",})
-				p2.board[40][love.math.random(1,10)] = "E"
-				p2.attackincoming = p2.attackincoming - 1
-				attackibility = attackibility - 1
-				love.audio.stop(garbagekick)
-				love.audio.play(garbagekick)
-			end
-		end
-	end
+	updateplayer(p1)
+	updateplayer(p2)
 	frames = frames - 1
 	end
 end
+spriterelative = {{0,0,1,0,1}}
+function stabo()
+	spriterelative = {{0,0,1,0,1}}
+end
+function stakpis(x,y,scale,rot,scaley)
+	table.insert(spriterelative,{x,y,scale or 1,rot or 0,scaley or scale or 1})
+end
+function stakpanvas(x,y,scale,rot,scaley)
+	table.insert(spriterelative,{x,y,scale or 1,rot or 0,scaley or scale or 1})
+end
+function unstakpis(x,y)
+	table.remove(spriterelative)
+end
+function rotatearoundpoint(x,y,px,py,rt)
+	local rx = x - px
+	local ry = y - py
+	ax = (math.cos(rt)*rx)-(math.sin(rt)*ry)
+	ay = (math.sin(rt)*rx)+(math.cos(rt)*ry)
+	ax = px + ax
+	ay = py + ay
+	return ax, ay
+end
 function drawsprite(image,x,y,cx,cy,sx,sy,rt)
 	love.graphics.push()
-	love.graphics.translate( x, y)
-	love.graphics.rotate(rt or 0)
-	love.graphics.scale(sx, sy)
-	love.graphics.draw(image or pieceimagetype.G, -cx, -cy)
+	tarx = 0
+	tary = 0
+	tarscalx = 1
+	tarscaly = 1
+	tarsrot = 0
+	for _,p in pairs(spriterelative) do
+	tarx,tary = rotatearoundpoint(tarx+(p[1]*tarscalx),tary+(p[2]*tarscaly),tarx,tary,tarsrot)
+	tarsrot = tarsrot + p[4]
+	tarscalx = tarscalx * p[3]
+	tarscaly = tarscaly * p[5]
+	end
+	tarx,tary = rotatearoundpoint(tarx+(x*tarscalx),tary+(y*tarscaly),tarx,tary,tarsrot)
+	tarsrot = tarsrot + (rt or 0)
+	tarscalx = tarscalx * sx
+	tarscaly = tarscaly * sy
+	love.graphics.translate(tarx,tary)
+	love.graphics.rotate(tarsrot)
+	love.graphics.scale(tarscalx, tarscaly)
+	love.graphics.draw(image or errored, -cx, -cy)
 	love.graphics.pop()
 end
-function drawpiece_queue(sprite,piecetyperr,rotation,x,y,size,dimx,dimy,centx,centy)
+function drawpiece(piecetyperr,x,y,size,color,player)
 	if not piecetyperr then return end
-	if piecetyperr == "E" then return end
-	dimx = dimx or 16
-	dimy = dimy or 16
-	centx = centx or 8
-	centy = centy or 8
-	if piecetyperr == "I" then
-		drawsprite(sprite, x+((1-1)*dimx*size), y+((2.5-1)*dimy*size),centx,centy,size,size)
-		drawsprite(sprite, x+((2-1)*dimx*size), y+((2.5-1)*dimy*size),centx,centy,size,size)
-		drawsprite(sprite, x+((3-1)*dimx*size), y+((2.5-1)*dimy*size),centx,centy,size,size)
-		drawsprite(sprite, x+((4-1)*dimx*size), y+((2.5-1)*dimy*size),centx,centy,size,size)
-	elseif piecetyperr == "O" then
-		drawsprite(sprite, x+((2-1)*dimx*size), y+((2-1)*dimy*size),centx,centy,size,size)
-		drawsprite(sprite, x+((3-1)*dimx*size), y+((2-1)*dimy*size),centx,centy,size,size)
-		drawsprite(sprite, x+((2-1)*dimx*size), y+((3-1)*dimy*size),centx,centy,size,size)
-		drawsprite(sprite, x+((3-1)*dimx*size), y+((3-1)*dimy*size),centx,centy,size,size)
-	else
 	for pies2 = 1 ,3 do
 		for pies1 = 1 ,3 do
-			if piecetype[piecetyperr][rotation][pies2][pies1] == 1 then
-				drawsprite(sprite, x+((pies1-.5)*dimx*size), y+((pies2)*dimy*size),centx,centy,size,size)
+			if piecetyperr[pies2][pies1] ~= nil then
+	love.graphics.push()
+	tarx = 0
+	tary = 0
+	tarscalx = 1
+	tarscaly = 1
+	tarsrot = 0
+	for _,p in pairs(spriterelative) do
+	tarx,tary = rotatearoundpoint(tarx+(p[1]*tarscalx),tary+(p[2]*tarscaly),tarx,tary,tarsrot)
+	tarsrot = tarsrot + p[4]
+	tarscalx = tarscalx * p[3]
+	tarscaly = tarscaly * p[5]
+	end
+	tarx,tary = rotatearoundpoint(tarx+((x+((pies1-1)*(32*size)))*tarscalx),tary+((y+((pies2-1)*(32*size)))*tarscaly),tarx,tary,tarsrot)
+	tarsrot = tarsrot + (rt or 0)
+	tarscalx = tarscalx * size
+	tarscaly = tarscaly * size
+	love.graphics.translate(tarx,tary)
+	love.graphics.rotate(tarsrot)
+	love.graphics.scale(tarscalx, tarscaly)
+	piecetyperr[pies2][pies1][2].Draw(0,0,color,1,string.sub(piecetyperr[pies2][pies1][1],3,-1),false,piecetyperr[pies2][pies1][3],nil,nil,player)
+	love.graphics.pop()
 			end
 		end
 	end
-	end
 end
-function drawpiece(sprite,piecetyperr,rotation,x,y,size,dimx,dimy,centx,centy)
-	if not piecetyperr then return end
-	if piecetyperr == "E" then return end
-	dimx = dimx or 16
-	dimy = dimy or 16
-	centx = centx or 8
-	centy = centy or 8
-	for pies2 = 1 ,4 do
-		for pies1 = 1 ,4 do
-			if piecetype[piecetyperr][rotation][pies2][pies1] == 1 then
-				drawsprite(sprite, x+((pies1-1)*dimx*size), y+((pies2-1)*dimy*size),centx,centy,size,size)
-			end
-		end
-	end
-end
-boarddrawable = love.graphics.newCanvas(320,480)
-pieceglow = love.graphics.newCanvas(64,64)
 function drawplayer(player,x,y,size)
-	local lastcanvas = love.graphics.getCanvas()
-    love.graphics.setCanvas(boarddrawable)
-	love.graphics.clear(0, 0, 0, 0)
-	love.graphics.setBlendMode("alpha")
+	stakpis(x-160,y-240,size,0,size)
 	if player.perfectclearframes > 0 then
 		local sizexsize = 1
 		if player.perfectclearframes > 90 then
@@ -1287,120 +1336,145 @@ function drawplayer(player,x,y,size)
 		end
 		drawsprite(perfectclearboard,160,240,80,160,sizexsize,sizexsize)
 	end
-	for boardgridy = 20,40 do
-		for boardgridx = 1,10 do
-			if player.board[boardgridy][boardgridx] ~= "E" then
-				drawsprite(pieceimagetype[player.board[boardgridy][boardgridx]], 160+(boardgridx*16)-(88), 240+(boardgridy*16)-((88+320+80)),8,8,1,1)
+	for boardgridy = 12,25 do
+		for boardgridx = 1,7 do
+			if player.board[boardgridy][boardgridx] ~= nil then
+				--drawsprite(pieceimagetype[player.board[boardgridy][boardgridx]], 160+(boardgridx*16)-(88), 240+(boardgridy*16)-((88+320+80)),8,8,1,1)
+				player.board[boardgridy][boardgridx][2].Draw((boardgridx*32)+16,((boardgridy-13)*32)+32,{r=162/255,g=219/255,b=212/255},1,string.sub(player.board[boardgridy][boardgridx][1],3,-1),false,player.board[boardgridy][boardgridx][3],boardgridx,boardgridy,player)
 			end
 		end
 	end
 	--drawsprite(board, 160, 240,88,240,1,1)
-	drawsprite(board, 160, 240,128,168,1,1)
-	--drawpiece_queue(pieceimagetype[player.piecequeue[1]],player.piecequeue[1],0,160-(24),240-(216),1)
-	--drawpiece(pieceimagetype[player.piecequeue[2]],player.piecequeue[2],0,160+(36),240-(196),.5)
-	--drawpiece(pieceimagetype[player.piecequeue[3]],player.piecequeue[3],0,160+(68),240-(196),.5)
-	drawpiece_queue(pieceimagetype[player.piecequeue[1]],player.piecequeue[1],0,160+(96),240-(160),1)
-	drawpiece_queue(pieceimagetype[player.piecequeue[2]],player.piecequeue[2],0,160+(92),240-(116),.5)
-	drawpiece_queue(pieceimagetype[player.piecequeue[3]],player.piecequeue[3],0,160+(92),240-(94),.5)
-	drawpiece_queue(pieceimagetype[player.piecequeue[4]],player.piecequeue[4],0,160+(92),240-(70),.5)
-	drawpiece_queue(pieceimagetype[player.piecequeue[5]],player.piecequeue[5],0,160+(92),240-(48),.5)
-	drawpiece_queue(pieceimagetype[player.piecequeue[6]],player.piecequeue[6],0,160+(92),240-(24),.5)
-	--drawpiece(player.holdlock and pieceimagetype.G or pieceimagetype[player.holdpiece],player.holdpiece,0,160-(68),240-(196),.5)
-	drawpiece_queue(player.holdlock and pieceimagetype.G or pieceimagetype[player.holdpiece],player.holdpiece,0,160-(116),240-(164),.5)
+	drawsprite(board, 160, 240,144,240,1,1)
+	--drawpiece(player.piecequeue[1],0,160-(24),240-(216),1)
 	if player.pieceactive then
-		if math.fmod(frameticks,2) == 0 then
-			local fafjaeuo = player.piecey
-			while piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,fafjaeuo) == false do
-				fafjaeuo = fafjaeuo+1
-			end
-			fafjaeuo = fafjaeuo-1
-			drawpiece(pieceimagetype[player.piececurrent],player.piececurrent,player.piecerotation,160-(88)+(player.piecex*16),240-((88+320+80))+(fafjaeuo*16),1)
-		end
-		local swgjrbjdrgbreh = pieceimagetype.Active
-		if player.holdlock then
-			swgjrbjdrgbreh = pieceimagetype.ActiveHold
-		end
-		if math.fmod(frameticks,2) == 0 then
-			swgjrbjdrgbreh = pieceimagetype.ActiveDark
-		end
-		drawpiece(swgjrbjdrgbreh,player.piececurrent,player.piecerotation,160-(88)+(player.piecex*16),240-((88+320+80))+(player.piecey*16),1,16,16,10,10)
-		drawpiece(pieceimagetype[player.piececurrent],player.piececurrent,player.piecerotation,160-(88)+(player.piecex*16),240-((88+320+80))+(player.piecey*16),1)
+		drawpiece(player.piececurrent,16+(player.piecex*32),-256-128+(player.piecey*32),1,{r=1,g=1,b=0},player)
 	end
-	local swgjrbjdrgbreh = "DNR"
-	if math.fmod(frameticks,8) >= 6 then
-		swgjrbjdrgbreh = garbageimagetype.white
-	elseif math.fmod(frameticks,8) >= 4 then
-		swgjrbjdrgbreh = garbageimagetype.yellow
-	elseif math.fmod(frameticks,8) >= 2 then
-		swgjrbjdrgbreh = garbageimagetype.red
-	end
-	for g = 1,4 do
-		if swgjrbjdrgbreh ~= "DNR" and g <= player.attackincoming then
-			drawsprite(swgjrbjdrgbreh,160+(84),240+((168-(g*16))),4,8,1,1)
-		end
-	end
-	local swgjrbjdrgbreh = "DNR"
-	if math.fmod(frameticks,8) >= 4 then
-		swgjrbjdrgbreh = garbageimagetype.red
-	end
-	for g = 5,20 do
-		if swgjrbjdrgbreh ~= "DNR" and g <= player.attackincoming then
-			drawsprite(swgjrbjdrgbreh,160+(84),240+((168-(g*16))),4,8,1,1)
-		end
-	end
-	local swgjrbjdrgbreh = "DNR"
-	if math.fmod(frameticks,8) >= 4 then
-		swgjrbjdrgbreh = garbageimagetype.yellow
-	end
-	for g = 21,36 do
-		if swgjrbjdrgbreh ~= "DNR" and g <= player.attackincoming then
-			drawsprite(swgjrbjdrgbreh,160+(84),240+((168-(20*16)+((g-21)*16))),4,8,1,1)
-		end
-	end
-    love.graphics.setCanvas(lastcanvas)
-	love.graphics.setBlendMode("alpha", "premultiplied")
-	drawsprite(boarddrawable,x,y,160,240,size,size)
+    unstakpis()
 end
 torturex, torturey = 640,480
 function love_cleopatra_render()
 	pcall(function()
 	torturex, torturey = (love.graphics.getWidth() or 640)/640, (love.graphics.getHeight() or 480)/480
 	end)
-    love.graphics.setCanvas(renderstage)
-	love.graphics.draw(bg, 0, 0)
+	stabo()
+    stakpis(0,0,torturex,0,torturey)
+	drawsprite(bg,0,0,0,0,1,1,0)
 	drawplayer(p1,160,240,1)
 	drawplayer(p2,480,240,1)
-	--font = love.graphics.getFont()
-	if resettime <= 240 then
-		if winner == "p1" then
-			p1info = boardwin
-			p2info = boardlose
-		elseif winner == "p2" then
-			p2info = boardwin
-			p1info = boardlose
-		elseif winner == "draw" then
-			p1info = boarddraw
-			p2info = boarddraw
-		end
-		local size = 1
-		if resettime > 210 then
-			size = (240-resettime)/30
-		end
-		if resettime <= 30 then
-			size = (resettime)/30
-		end
-		drawsprite(p1info,160,280,80,160,size,size)
-		drawsprite(p2info,480,280,80,160,size,size)
-	end
-    love.graphics.setCanvas()
-	love.graphics.push()
-	love.graphics.scale(love.graphics.getWidth( )/640, love.graphics.getHeight( )/480)
-	love.graphics.draw(renderstage, 0, 0)
-	love.graphics.pop()
+	drawpiece(p1.piecequeue[1],320-48,80,.5,{r=.5,g=.5,b=0},p1)
+	drawpiece(p2.piecequeue[1],320,80,.5,{r=.5,g=.5,b=0},p2)
+	unstakpis()
 end
 if love and love._version_major then
-function love.update    (...)  cleopatra_update(...)  end
-function love.draw      (...)  love_cleopatra_render(...)  end
+function reportErrorAndRestart(err)
+	local errHandler  = love.errorhandler or love.errhand
+	local errMainLoop = errHandler(err)
+
+	repeat until errMainLoop() -- Repeat until the callback returns an exit code.
+
+	-- We can restart the game now.
+	love.event.quit( "restart" )
+end
+function ohnoes(nonononoyoushouldnoterror)
+	ita=nonononoyoushouldnoterror
+	ite=debug.traceback()
+	local function draw()
+		if not love.graphics.isActive() then return end
+		if not htbfhkblrdgljrhensmrhmvergbehngserv then htbfhkblrdgljrhensmrhmvergbehngserv = 0 end
+		htbfhkblrdgljrhensmrhmvergbehngserv = htbfhkblrdgljrhensmrhmvergbehngserv + 1
+		love.graphics.origin()
+		love.graphics.clear(0, 0, 0)
+		love.graphics.setColor(.5,.5,.5)
+		if not vksndnhyrsbfugtfsdusdfhsbsdfk then vksndnhyrsbfugtfsdusdfhsbsdfk = love.graphics.newImage("data/tex/criterr0r.png") end
+		if not dgrkndrgnirngdghdfghgfhgfh then dgrkndrgnirngdghdfghgfhgfh = love.graphics.newImage("data/tex/criterror.png") end
+		for h = -1,math.ceil(love.graphics.getWidth()/230) do
+		for hh = -1,math.ceil(love.graphics.getHeight()/230) do
+		love.graphics.draw(vksndnhyrsbfugtfsdusdfhsbsdfk,(math.sin((htbfhkblrdgljrhensmrhmvergbehngserv*.025)+((hh-math.floor(htbfhkblrdgljrhensmrhmvergbehngserv/230))*.5))*90)+(h*230),math.fmod(htbfhkblrdgljrhensmrhmvergbehngserv,230)+(hh*230),0,.5,.5)
+		end
+		end
+		love.graphics.setColor(1,1,1)
+		love.graphics.draw(dgrkndrgnirngdghdfghgfhgfh,0,0,0,1,1)
+		love.graphics.print(ita,20,192)
+		love.graphics.print(ite,20,208)
+		love.graphics.present()
+	end
+	return function()
+		love.event.pump()
+		for e, a, b, c in love.event.poll() do
+			if e == "quit" then
+				return 1
+			elseif e == "keypressed" and a == "escape" then
+				return 1
+			elseif e == "keypressed" and a == "r" then
+				return 1
+			end
+		end
+		draw()
+		if love.timer then
+			love.timer.sleep(1/60)
+		end
+	end
+end
+love.errorhandler=ohnoes
+function playersound(player)
+	if player.playsound.land then
+		player.playsound.land = false
+		love.audio.stop(audaauda.land)
+		love.audio.play(audaauda.land)
+	end
+	if player.playsound.gravityland then
+		player.playsound.gravityland = false
+		love.audio.stop(audaauda.land)
+		love.audio.play(audaauda.land)
+	end
+	if player.playsound.rotatecw then
+		player.playsound.rotatecw = false
+		love.audio.stop(audaauda.rotate)
+		love.audio.play(audaauda.rotate)
+	end
+	if player.playsound.rotateccw then
+		player.playsound.rotateccw = false
+		love.audio.stop(audaauda.rotate)
+		love.audio.play(audaauda.rotate)
+	end
+	if player.playsound.covered then
+		player.playsound.covered = false
+		love.audio.stop(audaauda.covered)
+		love.audio.play(audaauda.covered)
+	end
+	if player.playsound.coverablebreak then
+		player.playsound.coverablebreak = false
+		love.audio.stop(audaauda.coverablebreak)
+		love.audio.play(audaauda.coverablebreak)
+	end
+	if player.playsound.gembreak then
+		player.playsound.gembreak = false
+		love.audio.stop(audaauda.gembreak)
+		love.audio.play(audaauda.gembreak)
+	end
+	if player.playsound.coffinbreak then
+		player.playsound.coffinbreak = false
+		love.audio.stop(audaauda.mummybreak)
+		love.audio.play(audaauda.mummybreak)
+	end
+	if player.playsound.mummybreak then
+		player.playsound.mummybreak = false
+		love.audio.stop(audaauda.mummybreak)
+		love.audio.play(audaauda.mummybreak)
+	end
+	if player.playsound.dead then
+		player.playsound.dead = false
+		love.audio.stop(audaauda.dead)
+		love.audio.play(audaauda.dead)
+	end
+end
+function love.update    (...)
+xpcall(cleopatra_update,reportErrorAndRestart,...)
+playersound(p1)
+playersound(p2)
+end
+function love.draw      (...)  xpcall(love_cleopatra_render,reportErrorAndRestart,...)  end
 end
 if game and game["Run Service"] then
 game:GetService("RunService").Heartbeat:Connect(function(...)  cleopatra_update(...) roblox_cleopatra_render(...) end)
