@@ -101,8 +101,6 @@ function DeductCredits2P(nmb)
 end
 if love and love._version_major then
 function love.load()
-	--loadpieceasset("data/blocks/mummies/big/1")
-	--loadpieceasset("data/blocks/mummies/big/2")
 	frames = 0
 	frameticks = 0
 	MachineConfiguration={
@@ -121,12 +119,9 @@ function love.load()
 	bg = love.graphics.newImage("bg.png")
 	board = love.graphics.newImage("board.png")
 	errored = love.graphics.newImage("data/tex/error.png")
-	--music = love.audio.newSource("data/music/shiningqueen.ogg", "stream")
-	--music:setLooping(true)
-	--music:play()
-	Dano = love.filesystem.read("data/music/shiningqueen.vox")
-	Dan = vox(Dano,2000000,1)
-	Dan:Play(0,math.huge,1,math.huge,nil)
+	music = love.audio.newSource("data/music/shiningqueen.ogg", "stream")
+	music:setLooping(true)
+	music:play()
 	pieceimagetype = love_loadpieceassets()
 	print("this has passed correctly")
 	entrydl = 10
@@ -1252,7 +1247,6 @@ frames = frames + (dt*60)
 	updateplayer(p2)
 	frames = frames - 1
 	end
-	Dan:Update()
 end
 spriterelative = {{0,0,1,0,1}}
 function stabo()
