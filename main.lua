@@ -811,8 +811,8 @@ function updateplayer(player)
 		end
 		for ita = 1,3 do
 			for ite = 1,3 do
-				if player.board[ita][ite] ~= nil then
-					player.piececurrent[ita][ite][2].Update(string.sub(player.piececurrent[ita][ite][1],3,-1),false,player.piececurrent[ita][ite][3],ite,ita,player)
+				if player.piececurrent ~= nil and player.piececurrent[ita][ite] ~= nil then
+					player.piececurrent[ita][ite][2].Update(string.sub(player.piececurrent[ita][ite][1],3,-1),false,player.piececurrent[ita][ite][3],nil,nil,player)
 				end
 			end
 		end
