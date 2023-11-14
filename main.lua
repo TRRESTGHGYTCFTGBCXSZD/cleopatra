@@ -101,6 +101,9 @@ function DeductCredits2P(nmb)
 end
 if love and love._version_major then
 function love.load()
+	rando = love.math.random
+	love.math.setRandomSeed(os.time())
+	math.randomseed(os.time())
 	frames = 0
 	frameticks = 0
 	MachineConfiguration={
@@ -110,8 +113,11 @@ function love.load()
 	["CreditsPerPlay"]=1,
 	["CreditsPerContinue"]=1,
 	["ChallengerWelcome"]=true,
-	["ContiuneAllowed"]=true,
+	["ContinueAllowed"]=true,
 	["Player2Welcome"]=true,
+	["VSOnSelection"]=true,
+	["CoopOnSelection"]=true,
+	["Level"]=8,
 	}
 	if not bit32 then bit32 = require("bit") end
 	vox=require("data.scripts.sounds.VOX")
@@ -121,7 +127,7 @@ function love.load()
 	errored = love.graphics.newImage("data/tex/error.png")
 	music = love.audio.newSource("data/music/shiningqueen.ogg", "stream")
 	music:setLooping(true)
-	music:play()
+	--music:play()
 	pieceimagetype = love_loadpieceassets()
 	print("this has passed correctly")
 	entrydl = 10
@@ -141,6 +147,7 @@ function love.load()
 	controleating = false
 	whatcontroleating = nil
 	piecetype=require("data.blocks.piecetype")
+	piecetypeallowedqueue=require("data.blocks.piecequeue")
 	p1 = {}
 	initplayer(p1)
 	p2 = {}
@@ -148,6 +155,7 @@ function love.load()
 end
 end
 if game and game["Run Service"] then
+	rando = math.random
 	frames = 0
 	frameticks = 0
 	if not bit32 then bit32 = require("bit") end
@@ -156,6 +164,7 @@ if game and game["Run Service"] then
 	entrydl = 10
 	timepassed = 10
 	piecetype=require(script.piecetype)
+	piecetypeallowedqueue=require(script.piecequeue)
 	p1 = {}
 	initplayer(p1)
 	p2 = {}
@@ -250,54 +259,6 @@ function initplayer(player)
 	player.piececurrent=nil
 	player.piecequeue={
 	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	--------------------------------
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.TallGemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	--------------------------------
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.TallGemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.LGemBlock1),
-	ProcessPiece(piecetype.LGemBlock1),
-	ProcessPiece(piecetype.TallGemBlock),
-	ProcessPiece(piecetype.LGemBlock1),
-	ProcessPiece(piecetype.GemBlock),
-	--------------------------------
-	ProcessPiece(piecetype.TallGemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.Blocks2),
-	ProcessPiece(piecetype.TallGemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.LGemBlock1),
-	ProcessPiece(piecetype.Blocks2),
-	ProcessPiece(piecetype.TallGemBlock),
-	--------------------------------
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.TallGemBlock),
-	ProcessPiece(piecetype.CoffinBlock),
-	ProcessPiece(piecetype.LGemBlock2),
-	ProcessPiece(piecetype.CoffinBlock),
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.GemBlock),
-	--------------------------------
-	ProcessPiece(piecetype.CoffinBlock),
-	ProcessPiece(piecetype.GemBlock),
-	ProcessPiece(piecetype.TallGemBlock),
-	ProcessPiece(piecetype.CoffinBlock),
 	}
 	player.attackincoming=0
 	player.linecleartrigger=false
@@ -369,7 +330,7 @@ for k in pairs(myTable) do
     table.insert(keyset, k)
 end
 -- now you can reliably return a random key
-return myTable[keyset[math.random(#keyset)]]
+return myTable[keyset[rando(#keyset)]]
 end
 function ProcessPiece(Piece)
 	local pieceyon = {{nil,nil,nil},{nil,nil,nil},{nil,nil,nil}}
@@ -384,29 +345,29 @@ function ProcessPiece(Piece)
 				local Yojong = randomtableo(pieceimagetype.Coverable.Big)
 				pieceyon[pooy][poox] = {"BLT0H",Yojong,{}}
 				pieceyon[pooy+1][poox] = {"BLT0T",Yojong,{}}
-				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
-				pieceyon[pooy+1][poox][2].Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy+1][poox][3])
 			end
 			if Piece[pooy][poox] == "BLT90" then
 				local Yojong = randomtableo(pieceimagetype.Coverable.Big)
 				pieceyon[pooy][poox+1] = {"BLT90H",Yojong,{}}
 				pieceyon[pooy][poox] = {"BLT90T",Yojong,{}}
-				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
-				pieceyon[pooy][poox+1][2].Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox+1][3])
 			end
 			if Piece[pooy][poox] == "BLT180" then
 				local Yojong = randomtableo(pieceimagetype.Coverable.Big)
 				pieceyon[pooy+1][poox] = {"BLT180H",Yojong,{}}
 				pieceyon[pooy][poox] = {"BLT180T",Yojong,{}}
-				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
-				pieceyon[pooy+1][poox][2].Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy+1][poox][3])
 			end
 			if Piece[pooy][poox] == "BLT270" then
 				local Yojong = randomtableo(pieceimagetype.Coverable.Big)
 				pieceyon[pooy][poox] = {"BLT270H",Yojong,{}}
 				pieceyon[pooy][poox+1] = {"BLT270T",Yojong,{}}
-				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
-				pieceyon[pooy][poox+1][2].Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox+1][3])
 			end
 			if Piece[pooy][poox] == "GM" then
 				pieceyon[pooy][poox] = {"GMS",randomtableo(pieceimagetype.Gem),{}}
@@ -416,29 +377,29 @@ function ProcessPiece(Piece)
 				local Yojong = randomtableo(pieceimagetype.Coffin)
 				pieceyon[pooy][poox] = {"CFT0H",Yojong,{}}
 				pieceyon[pooy+1][poox] = {"CFT0T",Yojong,{}}
-				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
-				pieceyon[pooy+1][poox][2].Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy+1][poox][3])
 			end
 			if Piece[pooy][poox] == "CF90" then
 				local Yojong = randomtableo(pieceimagetype.Coffin)
 				pieceyon[pooy][poox+1] = {"CFT90H",Yojong,{}}
 				pieceyon[pooy][poox] = {"CFT90T",Yojong,{}}
-				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
-				pieceyon[pooy][poox+1][2].Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox+1][3])
 			end
 			if Piece[pooy][poox] == "CF180" then
 				local Yojong = randomtableo(pieceimagetype.Coffin)
 				pieceyon[pooy+1][poox] = {"CFT180H",Yojong,{}}
 				pieceyon[pooy][poox] = {"CFT180T",Yojong,{}}
-				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
-				pieceyon[pooy+1][poox][2].Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy+1][poox][3])
 			end
 			if Piece[pooy][poox] == "CF270" then
 				local Yojong = randomtableo(pieceimagetype.Coffin)
 				pieceyon[pooy][poox] = {"CFT270H",Yojong,{}}
 				pieceyon[pooy][poox+1] = {"CFT270T",Yojong,{}}
-				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
-				pieceyon[pooy][poox+1][2].Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox+1][3])
 			end
 			if Piece[pooy][poox] == "MUS" then
 				pieceyon[pooy][poox] = {"MUS",randomtableo(pieceimagetype.Mummy.Small),{}}
@@ -448,29 +409,29 @@ function ProcessPiece(Piece)
 				local Yojong = randomtableo(pieceimagetype.Mummy.Big)
 				pieceyon[pooy][poox] = {"MUT0H",Yojong,{}}
 				pieceyon[pooy+1][poox] = {"MUT0T",Yojong,{}}
-				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
-				pieceyon[pooy+1][poox][2].Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy+1][poox][3])
 			end
 			if Piece[pooy][poox] == "MUT90" then
 				local Yojong = randomtableo(pieceimagetype.Mummy.Big)
 				pieceyon[pooy][poox+1] = {"MUT90H",Yojong,{}}
 				pieceyon[pooy][poox] = {"MUT90T",Yojong,{}}
-				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
-				pieceyon[pooy][poox+1][2].Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox+1][3])
 			end
 			if Piece[pooy][poox] == "MUT180" then
 				local Yojong = randomtableo(pieceimagetype.Mummy.Big)
 				pieceyon[pooy+1][poox] = {"MUT180H",Yojong,{}}
 				pieceyon[pooy][poox] = {"MUT180T",Yojong,{}}
-				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
-				pieceyon[pooy+1][poox][2].Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy+1][poox][3])
 			end
 			if Piece[pooy][poox] == "MUT270" then
 				local Yojong = randomtableo(pieceimagetype.Mummy.Big)
 				pieceyon[pooy][poox] = {"MUT270H",Yojong,{}}
 				pieceyon[pooy][poox+1] = {"MUT270T",Yojong,{}}
-				pieceyon[pooy][poox][2].Create(pieceyon[pooy][poox][3])
-				pieceyon[pooy][poox+1][2].Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox][3])
+				Yojong.Create(pieceyon[pooy][poox+1][3])
 			end
 			end
 		end
@@ -841,6 +802,20 @@ function floodfill(checkboard,x,y,value)
 end
 function updateplayer(player)
 	player.are = player.are - 1
+		for ita = 1,25 do
+			for ite = 1,7 do
+				if player.board[ita][ite] ~= nil then
+					player.board[ita][ite][2].Update(string.sub(player.board[ita][ite][1],3,-1),false,player.board[ita][ite][3],ite,ita,player)
+				end
+			end
+		end
+		for ita = 1,3 do
+			for ite = 1,3 do
+				if player.board[ita][ite] ~= nil then
+					player.piececurrent[ita][ite][2].Update(string.sub(player.piececurrent[ita][ite][1],3,-1),false,player.piececurrent[ita][ite][3],ite,ita,player)
+				end
+			end
+		end
 	if player.pieceactive == false and player.dead == false and player.are > 0 then
 		if (not player.leftinput) or (player.leftinput and player.rightinput) then
 			player.leftdas = 10
@@ -995,7 +970,7 @@ function updateplayer(player)
 		if not player.donotnext then
 			player.piececurrent = table.remove(player.piecequeue,1)
 			if #player.piecequeue < 3 then
-				table.insert(player.piecequeue,ProcessPiece(randomtableo(piecetype)))
+				table.insert(player.piecequeue,ProcessPiece(piecetype[randomtableo(piecetypeallowedqueue[50])]))
 			end
 		end
 		player.piecex = 3
@@ -1317,7 +1292,7 @@ function drawpiece(piecetyperr,x,y,size,color,player)
 	love.graphics.translate(tarx,tary)
 	love.graphics.rotate(tarsrot)
 	love.graphics.scale(tarscalx, tarscaly)
-	piecetyperr[pies2][pies1][2].Draw(0,0,color,1,string.sub(piecetyperr[pies2][pies1][1],3,-1),false,piecetyperr[pies2][pies1][3],nil,nil,player)
+	pcall(function()piecetyperr[pies2][pies1][2].Draw(0,0,color,1,string.sub(piecetyperr[pies2][pies1][1],3,-1),false,piecetyperr[pies2][pies1][3],nil,nil,player)end)
 	love.graphics.pop()
 			end
 		end
@@ -1339,7 +1314,25 @@ function drawplayer(player,x,y,size)
 		for boardgridx = 1,7 do
 			if player.board[boardgridy][boardgridx] ~= nil then
 				--drawsprite(pieceimagetype[player.board[boardgridy][boardgridx]], 160+(boardgridx*16)-(88), 240+(boardgridy*16)-((88+320+80)),8,8,1,1)
-				player.board[boardgridy][boardgridx][2].Draw((boardgridx*32)+16,((boardgridy-13)*32)+32,{r=162/255,g=219/255,b=212/255},1,string.sub(player.board[boardgridy][boardgridx][1],3,-1),false,player.board[boardgridy][boardgridx][3],boardgridx,boardgridy,player)
+	love.graphics.push()
+	tarx = 0
+	tary = 0
+	tarscalx = 1
+	tarscaly = 1
+	tarsrot = 0
+	for _,p in pairs(spriterelative) do
+	tarx,tary = rotatearoundpoint(tarx+(p[1]*tarscalx),tary+(p[2]*tarscaly),tarx,tary,tarsrot)
+	tarsrot = tarsrot + p[4]
+	tarscalx = tarscalx * p[3]
+	tarscaly = tarscaly * p[5]
+	end
+	tarx,tary = rotatearoundpoint(tarx+(((boardgridx*32)+16)*tarscalx),tary+(((boardgridy*32)-384)*tarscaly),tarx,tary,tarsrot)
+	tarsrot = tarsrot + (rt or 0)
+	love.graphics.translate(tarx,tary)
+	love.graphics.rotate(tarsrot)
+	love.graphics.scale(tarscalx, tarscaly)
+				pcall(function()player.board[boardgridy][boardgridx][2].Draw(0,0,{r=162/255,g=219/255,b=212/255},1,string.sub(player.board[boardgridy][boardgridx][1],3,-1),false,player.board[boardgridy][boardgridx][3],boardgridx,boardgridy,player)end)
+	love.graphics.pop()
 			end
 		end
 	end

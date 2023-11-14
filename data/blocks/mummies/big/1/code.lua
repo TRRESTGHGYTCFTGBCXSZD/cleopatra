@@ -21,17 +21,15 @@ animationstore.Blink = math.random(180,280)
 animationstore.Bambisona = randomtableo(Bambisona)
 end,
 Update = function(typeofblock,breaking,animationstore,posx,posy,playerdata)
-end,
-Draw = function(x,y,color,size,typeofblock,breaking,animationstore,posx,posy,playerdata)
-	if typeofblock == "T0T" then
-	return
-	elseif typeofblock == "T90T" then
-	return
-	elseif typeofblock == "T180T" then
-	return
-	elseif typeofblock == "T270T" then
+	if not (typeofblock == "T0H" or typeofblock == "T90H" or typeofblock == "T180H" or typeofblock == "T270H") then
 	return
 	end
+	animationstore.Blink = animationstore.Blink - 1
+	if animationstore.Blink <= 0 then
+		animationstore.Blink = math.random(180,280)
+	end
+end,
+Draw = function(x,y,color,size,typeofblock,breaking,animationstore,posx,posy,playerdata)
 	local rotation
 	if typeofblock == "T0H" then
 	rotation=0
@@ -41,10 +39,20 @@ Draw = function(x,y,color,size,typeofblock,breaking,animationstore,posx,posy,pla
 	rotation=180
 	elseif typeofblock == "T270H" then
 	rotation=270
+	else
+	return
 	end
 	Quad:setViewport(0,0,32,64)
-	love.graphics.draw(animationstore.Bambisona or Bambisona[1],Quad,x+16,y+16,math.rad(rotation),size,size,16,16)
+	love.graphics.draw(animationstore.Bambisona,Quad,x+16,y+16,math.rad(rotation),size,size,16,16)
+	if animationstore.Blink <= 4 then
+	Quad:setViewport(64,32,32,32)
+	elseif animationstore.Blink <= 8 then
+	Quad:setViewport(64,0,32,32)
+	elseif animationstore.Blink <= 12 then
+	Quad:setViewport(32,32,32,32)
+	else
 	Quad:setViewport(32,0,32,32)
-	love.graphics.draw(animationstore.Bambisona or Bambisona[1],Quad,x+16,y+16,math.rad(rotation),size,size,16,16)
+	end
+	love.graphics.draw(animationstore.Bambisona,Quad,x+16,y+16,math.rad(rotation),size,size,16,16)
 end,
 }
