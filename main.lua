@@ -144,6 +144,7 @@ function love.load()
 	audaauda.coverablebreak = love.audio.newSource("data/sound/blockbreak.wav", "static")
 	audaauda.gembreak = love.audio.newSource("data/sound/gembreak.wav", "static")
 	audaauda.mummybreak = love.audio.newSource("data/sound/lineclear.wav", "static")
+	audaauda.chain = love.audio.newSource("data/sound/chain.wav", "static")
 	controls = {["P1Left"]={"kbd","left"},["P1Right"]={"kbd","right"},["P1SoftDrop"]={"kbd","down"},["P1HardDrop"]={"kbd","up"},["P1CCW"]={"kbd","z"},["P1CW"]={"kbd","x"},["P1Hold"]={"kbd","space"},
 	["P2Left"]={"none","none"},["P2Right"]={"none","none"},["P2SoftDrop"]={"none","none"},["P2HardDrop"]={"none","none"},["P2CCW"]={"none","none"},["P2CW"]={"none","none"},["P2Hold"]={"none","none"},}
 	controleating = false
@@ -173,7 +174,7 @@ if game and game["Run Service"] then
 	initplayer(p2)
 end
 function getgravityforlevel(level)
-	return (1/60)/((.8-((level-1)*.007))^(level-1))
+	return level <= 9 and (1/80)*(level^(2^(1/2))) or (1/40)*((math.fmod(level,10)^(((math.floor(level/10)+1)^(1/2))^(1/2)))+1)
 end
 	function tablltablltabllcontains(list, x)
 		for _, v in pairs(list) do
@@ -254,6 +255,7 @@ function initplayer(player)
 	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
 	{{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},{0,false},},
 	}
+	player.particlefordeadpieces={}
 	player.gemd={}
 	player.pieceactive=false
 	player.piecex=0
@@ -290,6 +292,9 @@ function initplayer(player)
 	player.locktime=30
 	player.perfectclearframes=0
 	player.are=0
+	player.level=59
+	player.blocksuntilnextlevel=8
+	
 	player.playsound={
 	["land"]=false,
 	["lock"]=false,
@@ -804,6 +809,16 @@ function floodfill(checkboard,x,y,value)
 		floodfill(checkboard,x,y-1,value)
 	end
 end
+function getyon(tabl,tabI)
+    if #tabl == 0 then return nil end
+    local key, value = -math.huge, nil
+    for g,i in pairs(tabl) do
+        if key < g and key >= tabI then
+            key, value = g, i
+        end
+    end
+    return key
+end
 function updateplayer(player)
 	player.are = player.are - 1
 		for ita = 1,25 do
@@ -819,6 +834,11 @@ function updateplayer(player)
 					player.piececurrent[ita][ite][2].Update(string.sub(player.piececurrent[ita][ite][1],3,-1),false,player.piececurrent[ita][ite][3],nil,nil,player)
 				end
 			end
+		end
+		for h,ita in pairs(player.particlefordeadpieces) do
+			ita[2].Update(string.sub(ita[1],3,-1),true,ita[3],nil,nil,player)
+			ita[6] = ita[6] - 1
+			if ita[6] == 0 then player.particlefordeadpieces[h] = nil end
 		end
 	if player.pieceactive == false and player.dead == false and player.are > 0 then
 		if (not player.leftinput) or (player.leftinput and player.rightinput) then
@@ -903,12 +923,20 @@ function updateplayer(player)
 		for ita = 1,25 do
 			for ite = 1,7 do
 				if player.gemd[player.coverboard[ita][ite][1]] then
+					local deadban = player.board[ita][ite]
+					deadban[4]=ite
+					deadban[5]=ita
+					deadban[6]=300
+					table.insert(player.particlefordeadpieces,deadban)
 					player.board[ita][ite] = nil
 					player.coverpopd = true
-					player.are = entrydl
-					player.playsound.covered = true
 				end
 			end
+		end
+		if player.coverpopd then
+			player.chain = player.chain + 1
+			player.are = entrydl
+			player.playsound.covered = true
 		end
 		if player.coverpopd == false then
 		for ita = 1,25 do --linepop
@@ -946,13 +974,24 @@ function updateplayer(player)
 					if string.sub(player.board[ita][ite][1],1,2) == "GM" then player.playsound.gembreak = true end
 					if string.sub(player.board[ita][ite][1],1,2) == "CF" then player.playsound.coffinbreak = true end
 					if string.sub(player.board[ita][ite][1],1,2) == "MU" then player.playsound.mummybreak = true end
+					local deadban = player.board[ita][ite]
+					deadban[4]=ite
+					deadban[5]=ita
+					deadban[6]=300
+					table.insert(player.particlefordeadpieces,deadban)
 					player.board[ita][ite] = nil
 					player.linepopd = true
-					player.are = entrydl
 				end
 			end
 		end
+		if player.linepopd then
+			player.chain = player.chain + 1
+			player.are = entrydl
 		end
+		end
+		end
+		if (player.coverpopd or player.linepopd) and player.chain >= 2 then
+			player.playsound.chain = true
 		end
 		for ita = 1,25 do
 			for ite = 1,7 do
@@ -974,7 +1013,9 @@ function updateplayer(player)
 		if not player.donotnext then
 			player.piececurrent = table.remove(player.piecequeue,1)
 			if #player.piecequeue < 3 then
-				table.insert(player.piecequeue,ProcessPiece(piecetype[randomtableo(piecetypeallowedqueue[50])]))
+				local yonnnn = piecetypeallowedqueue[getyon(piecetypeallowedqueue,player.level)]
+				print(getyon(piecetypeallowedqueue,player.level))
+				table.insert(player.piecequeue,ProcessPiece(piecetype[randomtableo(yonnnn)]))
 			end
 		end
 		player.piecex = 3
@@ -1002,7 +1043,7 @@ function updateplayer(player)
 	end
 	if player.pieceactive == true and player.dead == false then
 		
-		player.downwardtime=player.downwardtime+0
+		player.downwardtime=player.downwardtime+getgravityforlevel(player.level)
 		
 		if (not player.leftinput) or (player.leftinput and player.rightinput) then
 			player.leftdas = 10
@@ -1211,6 +1252,7 @@ function updateplayer(player)
 			end
 		end
 		player.are = entrydl
+		player.chain = 0
 	end
 end
 resettime = 300
@@ -1337,6 +1379,28 @@ function drawplayer(player,x,y,size)
 			end
 		end
 	end
+	for _,pry in pairs(player.particlefordeadpieces) do
+				--drawsprite(pieceimagetype[player.board[boardgridy][boardgridx]], 160+(boardgridx*16)-(88), 240+(boardgridy*16)-((88+320+80)),8,8,1,1)
+	love.graphics.push()
+	tarx = 0
+	tary = 0
+	tarscalx = 1
+	tarscaly = 1
+	tarsrot = 0
+	for _,p in pairs(spriterelative) do
+	tarx,tary = rotatearoundpoint(tarx+(p[1]*tarscalx),tary+(p[2]*tarscaly),tarx,tary,tarsrot)
+	tarsrot = tarsrot + p[4]
+	tarscalx = tarscalx * p[3]
+	tarscaly = tarscaly * p[5]
+	end
+	tarx,tary = rotatearoundpoint(tarx+(((pry[4]*32)+16)*tarscalx),tary+(((pry[5]*32)-384)*tarscaly),tarx,tary,tarsrot)
+	tarsrot = tarsrot + (rt or 0)
+	love.graphics.translate(tarx,tary)
+	love.graphics.rotate(tarsrot)
+	love.graphics.scale(tarscalx, tarscaly)
+				pcall(function()pry[2].Draw(0,0,{r=162/255,g=219/255,b=212/255},1,string.sub(pry[1],3,-1),true,pry[3],nil,nil,player)end)
+	love.graphics.pop()
+	end
 	--drawsprite(board, 160, 240,88,240,1,1)
 	drawsprite(board, 160, 240,144,240,1,1)
 	--drawpiece(player.piecequeue[1],0,160-(24),240-(216),1)
@@ -1455,6 +1519,11 @@ function playersound(player)
 		player.playsound.mummybreak = false
 		love.audio.stop(audaauda.mummybreak)
 		love.audio.play(audaauda.mummybreak)
+	end
+	if player.playsound.chain then
+		player.playsound.chain = false
+		love.audio.stop(audaauda.chain)
+		love.audio.play(audaauda.chain)
 	end
 	if player.playsound.dead then
 		player.playsound.dead = false

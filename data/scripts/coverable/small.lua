@@ -11,6 +11,7 @@ end,
 Update = function(typeofblock,breaking,animationstore,posx,posy,playerdata)
 end,
 Draw = function(x,y,color,size,typeofblock,breaking,animationstore,posx,posy,playerdata)
+	if breaking then return end
 	local yoncolora,yoncolorb,yoncolorc,yoncolord = love.graphics.getColor()
 	love.graphics.setColor(color.r,color.g,color.b,color.a or 1)
 	love.graphics.draw(Block,x,y,0,size,size)
