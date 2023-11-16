@@ -99,6 +99,8 @@ function DeductCredits2P(nmb)
 		script.Parent.Credits2P.Value = script.Parent.Credits2P.Value - nmb
 	end
 end
+local function lerp(a,b,t) return a * (1-t) + b * t end
+local function inverselerp(a,b,t) return (t-a)/(b-a) end
 if love and love._version_major then
 function love.load()
 	rando = love.math.random
@@ -125,9 +127,9 @@ function love.load()
 	bg = love.graphics.newImage("bg.png")
 	board = love.graphics.newImage("board.png")
 	errored = love.graphics.newImage("data/tex/error.png")
-	music = love.audio.newSource("data/music/shiningqueen.ogg", "stream")
+	music = love.audio.newSource("data/music/towinqux.ogg", "stream")
 	music:setLooping(true)
-	--music:play()
+	music:play()
 	pieceimagetype = love_loadpieceassets()
 	print("this has passed correctly")
 	entrydl = 10
@@ -283,8 +285,8 @@ function initplayer(player)
 	player.linepopd=false
 	player.smthistouching=true
 	player.downwardtime=0
-	player.movereset=15
-	player.rotreset=15
+	player.hasbeenlanded=false
+	player.resetafterpoint=0
 	player.locktime=30
 	player.perfectclearframes=0
 	player.are=0
@@ -293,6 +295,8 @@ function initplayer(player)
 	["lock"]=false,
 	["rotateccw"]=false,
 	["rotatecw"]=false,
+	["moveleft"]=false,
+	["moveright"]=false,
 	["coverablebreak"]=false,
 	["chain"]=false,
 	["gembreak"]=false,
@@ -975,11 +979,13 @@ function updateplayer(player)
 		end
 		player.piecex = 3
 		player.piecey = 10
+		if not (player.piececurrent[3][1] ~= nil or player.piececurrent[3][2] ~= nil or player.piececurrent[3][3] ~= nil) then
+			player.piecey = player.piecey + 1
+		end
 		player.piecerotation = 0
 		player.downwardtime = 0
 		player.locktime = 30
-		player.movereset = 15
-		player.rotreset = 15
+		player.resetafterpoint = 0
 		player.ccwlock = false
 		player.cwlock = false
 		player.holdlock = false
@@ -988,9 +994,10 @@ function updateplayer(player)
 		player.ccwlock = true
 		player.cwlock = true
 		end
-		if piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey) then
+		if piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey) or collidetest(player.board,4,13) then
 			player.dead = true
 			player.playsound.dead = true
+			player.piecey = player.piecey + 1
 		end
 	end
 	if player.pieceactive == true and player.dead == false then
@@ -1010,10 +1017,7 @@ function updateplayer(player)
 					player.piecex = player.piecex + 1
 				end
 				if ishemoving then
-				end
-				if player.locktime < 30 and ishemoving then
-					player.locktime = 30
-					player.movereset = player.movereset - 1
+					player.playsound.moveleft = true
 				end
 			end
 			player.leftdas = player.leftdas - 1
@@ -1032,10 +1036,7 @@ function updateplayer(player)
 					player.piecex = player.piecex - 1
 				end
 				if ishemoving then
-				end
-				if player.locktime < 30 and ishemoving then
-					player.locktime = 30
-					player.movereset = player.movereset - 1
+					player.playsound.moveright = true
 				end
 			end
 			player.rightdas = player.rightdas - 1
@@ -1166,15 +1167,14 @@ function updateplayer(player)
 		end
 		
 		if piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey+1) then
-			if player.locktime == 30 then
-				player.playsound.land = true
-			end
 			player.downwardtime=0
 			player.locktime=player.locktime-1
+			if not player.hasbeenlanded then
+				player.hasbeenlanded = true
+				player.playsound.land = true
+			end
 		else
-			player.locktime=30
-		end
-		
+			player.hasbeenlanded = false
 		if player.sdinput or player.downwardtime >= 1 then
 			if player.sdinput and player.downwardtime < 1 then
 				player.downwardtime = 1
@@ -1182,17 +1182,18 @@ function updateplayer(player)
 			while piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey) == false and player.downwardtime >= 1 do
 				player.piecey = player.piecey+1
 				player.downwardtime = player.downwardtime - 1
+				if player.piecey > player.resetafterpoint then
+					player.locktime = 30
+					player.resetafterpoint = player.piecey
+				end
 			end
 			if piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey) then
 				player.piecey = player.piecey-1
 			end
 		end
+		end
 		
-		if player.locktime <= 0 or player.movereset <= 0 or player.rotreset <= 0 and (not (player.hdinput or player.holdinput)) then
-			while piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey) == false do
-				player.piecey = player.piecey+1
-			end
-			player.piecey = player.piecey-1
+		if player.locktime <= 0 and piececollidetest(player.board,player.piececurrent,player.piecerotation,player.piecex,player.piecey+1) then
 			for pies2 = 1 ,3 do
 				for pies1 = 1 ,3 do
 					if player.piececurrent[pies2][pies1] ~= nil then
@@ -1340,7 +1341,7 @@ function drawplayer(player,x,y,size)
 	drawsprite(board, 160, 240,144,240,1,1)
 	--drawpiece(player.piecequeue[1],0,160-(24),240-(216),1)
 	if player.pieceactive then
-		drawpiece(player.piececurrent,16+(player.piecex*32),-256-128+(player.piecey*32),1,{r=1,g=1,b=0},player)
+		drawpiece(player.piececurrent,16+(player.piecex*32),-256-128+(player.piecey*32),1,{r=lerp(1,.5,inverselerp(30,0,player.locktime)),g=lerp(1,.5,inverselerp(30,0,player.locktime)),b=0},player)
 	end
     unstakpis()
 end
