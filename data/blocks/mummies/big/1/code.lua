@@ -18,11 +18,15 @@ Quad=love.graphics.newQuad( 0, 0, 32, 32, 96, 64 )
 end,
 Create = function(animationstore)
 animationstore.Blink = math.random(180,280)
+animationstore.Destroy = 0
 animationstore.Bambisona = randomtableo(Bambisona)
 end,
 Update = function(typeofblock,breaking,animationstore,posx,posy,playerdata)
 	if not (typeofblock == "T0H" or typeofblock == "T90H" or typeofblock == "T180H" or typeofblock == "T270H") then
 	return
+	end
+	if breaking and animationstore.Destroy < 30 then
+		animationstore.Destroy = animationstore.Destroy + 1
 	end
 	animationstore.Blink = animationstore.Blink - 1
 	if animationstore.Blink <= 0 then
@@ -43,7 +47,7 @@ Draw = function(x,y,color,size,typeofblock,breaking,animationstore,posx,posy,pla
 	return
 	end
 	Quad:setViewport(0,0,32,64)
-	love.graphics.draw(animationstore.Bambisona,Quad,x+16,y+16,math.rad(rotation),size,size,16,16)
+	love.graphics.draw(animationstore.Bambisona,Quad,x+16,y+16,math.rad(rotation),size*((1-animationstore.Destroy/30)),size*((1-animationstore.Destroy/30)),16,16)
 	if animationstore.Blink <= 4 then
 	Quad:setViewport(64,32,32,32)
 	elseif animationstore.Blink <= 8 then
@@ -53,6 +57,6 @@ Draw = function(x,y,color,size,typeofblock,breaking,animationstore,posx,posy,pla
 	else
 	Quad:setViewport(32,0,32,32)
 	end
-	love.graphics.draw(animationstore.Bambisona,Quad,x+16,y+16,math.rad(rotation),size,size,16,16)
+	love.graphics.draw(animationstore.Bambisona,Quad,x+16,y+16,math.rad(rotation),size*((1-animationstore.Destroy/30)),size*((1-animationstore.Destroy/30)),16,16)
 end,
 }

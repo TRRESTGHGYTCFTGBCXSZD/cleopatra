@@ -145,6 +145,7 @@ function love.load()
 	audaauda.gembreak = love.audio.newSource("data/sound/gembreak.wav", "static")
 	audaauda.mummybreak = love.audio.newSource("data/sound/lineclear.wav", "static")
 	audaauda.chain = love.audio.newSource("data/sound/chain.wav", "static")
+	audaauda.levelup = love.audio.newSource("data/sound/levelup.wav", "static")
 	controls = {["P1Left"]={"kbd","left"},["P1Right"]={"kbd","right"},["P1SoftDrop"]={"kbd","down"},["P1HardDrop"]={"kbd","up"},["P1CCW"]={"kbd","z"},["P1CW"]={"kbd","x"},["P1Hold"]={"kbd","space"},
 	["P2Left"]={"none","none"},["P2Right"]={"none","none"},["P2SoftDrop"]={"none","none"},["P2HardDrop"]={"none","none"},["P2CCW"]={"none","none"},["P2CW"]={"none","none"},["P2Hold"]={"none","none"},}
 	controleating = false
@@ -174,7 +175,7 @@ if game and game["Run Service"] then
 	initplayer(p2)
 end
 function getgravityforlevel(level)
-	return level <= 9 and (1/80)*(level^(2^(1/2))) or (1/40)*((math.fmod(level,10)^(((math.floor(level/10)+1)^(1/2))^(1/2)))+1)
+	return level <= 9 and (1/80)*(level^(2^(1/2))) or (1/40)*((math.fmod(level,10)^((((math.floor(level/10)+1)^(1/2))^(1/2))^(1/2)))+1)
 end
 	function tablltablltabllcontains(list, x)
 		for _, v in pairs(list) do
@@ -264,6 +265,57 @@ function initplayer(player)
 	player.piecequeue={
 	ProcessPiece(piecetype.GemBlock),
 	}
+	--[[player.piecequeue={
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	--------------------------------
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.TallGemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	--------------------------------
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.TallGemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.LGemBlock1),
+	ProcessPiece(piecetype.LGemBlock1),
+	ProcessPiece(piecetype.TallGemBlock),
+	ProcessPiece(piecetype.LGemBlock1),
+	ProcessPiece(piecetype.GemBlock),
+	--------------------------------
+	ProcessPiece(piecetype.TallGemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.Blocks2),
+	ProcessPiece(piecetype.TallGemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.LGemBlock1),
+	ProcessPiece(piecetype.Blocks2),
+	ProcessPiece(piecetype.TallGemBlock),
+	--------------------------------
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.TallGemBlock),
+	ProcessPiece(piecetype.CoffinBlock),
+	ProcessPiece(piecetype.LGemBlock2),
+	ProcessPiece(piecetype.CoffinBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.GemBlock),
+	--------------------------------
+	ProcessPiece(piecetype.CoffinBlock),
+	ProcessPiece(piecetype.GemBlock),
+	ProcessPiece(piecetype.TallGemBlock),
+	ProcessPiece(piecetype.CoffinBlock),
+	}--]]
 	player.attackincoming=0
 	player.linecleartrigger=false
 	player.lineclears=0
@@ -292,9 +344,9 @@ function initplayer(player)
 	player.locktime=30
 	player.perfectclearframes=0
 	player.are=0
-	player.level=59
+	player.level=1
 	player.blocksuntilnextlevel=8
-	
+	player.pausechain=0
 	player.playsound={
 	["land"]=false,
 	["lock"]=false,
@@ -304,6 +356,7 @@ function initplayer(player)
 	["moveright"]=false,
 	["coverablebreak"]=false,
 	["chain"]=false,
+	["levelup"]=false,
 	["gembreak"]=false,
 	["coffinbreak"]=false,
 	["mummybreak"]=false,
@@ -810,36 +863,38 @@ function floodfill(checkboard,x,y,value)
 	end
 end
 function getyon(tabl,tabI)
-    if #tabl == 0 then return nil end
-    local key, value = -math.huge, nil
-    for g,i in pairs(tabl) do
-        if key < g and key >= tabI then
-            key, value = g, i
-        end
-    end
-    return key
+	gggg,hhhh = -math.huge,nil
+	for g,h in pairs(tabl) do
+		if g > gggg and g <= tabI then
+			gggg,hhhh = g,h
+		end
+	end
+	return gggg
 end
 function updateplayer(player)
-	player.are = player.are - 1
+	player.pausechain = player.pausechain - 1
 		for ita = 1,25 do
 			for ite = 1,7 do
 				if player.board[ita][ite] ~= nil then
-					player.board[ita][ite][2].Update(string.sub(player.board[ita][ite][1],3,-1),false,player.board[ita][ite][3],ite,ita,player)
+					pcall(function()player.board[ita][ite][2].Update(string.sub(player.board[ita][ite][1],3,-1),false,player.board[ita][ite][3],ite,ita,player)end)
 				end
 			end
 		end
 		for ita = 1,3 do
 			for ite = 1,3 do
 				if player.piececurrent ~= nil and player.piececurrent[ita][ite] ~= nil then
-					player.piececurrent[ita][ite][2].Update(string.sub(player.piececurrent[ita][ite][1],3,-1),false,player.piececurrent[ita][ite][3],nil,nil,player)
+					pcall(function()player.piececurrent[ita][ite][2].Update(string.sub(player.piececurrent[ita][ite][1],3,-1),false,player.piececurrent[ita][ite][3],nil,nil,player)end)
 				end
 			end
 		end
 		for h,ita in pairs(player.particlefordeadpieces) do
+			--pcall(function()ita[2].Update(string.sub(ita[1],3,-1),true,ita[3],nil,nil,player)end)
 			ita[2].Update(string.sub(ita[1],3,-1),true,ita[3],nil,nil,player)
 			ita[6] = ita[6] - 1
 			if ita[6] == 0 then player.particlefordeadpieces[h] = nil end
 		end
+	if player.pausechain >= 0 then return end
+	player.are = player.are - 1
 	if player.pieceactive == false and player.dead == false and player.are > 0 then
 		if (not player.leftinput) or (player.leftinput and player.rightinput) then
 			player.leftdas = 10
@@ -922,7 +977,7 @@ function updateplayer(player)
 		end
 		for ita = 1,25 do
 			for ite = 1,7 do
-				if player.gemd[player.coverboard[ita][ite][1]] then
+				if player.gemd[player.coverboard[ita][ite][1]] and player.board[ita][ite] then
 					local deadban = player.board[ita][ite]
 					deadban[4]=ite
 					deadban[5]=ita
@@ -935,6 +990,7 @@ function updateplayer(player)
 		end
 		if player.coverpopd then
 			player.chain = player.chain + 1
+			player.pausechain = 60
 			player.are = entrydl
 			player.playsound.covered = true
 		end
@@ -986,6 +1042,7 @@ function updateplayer(player)
 		end
 		if player.linepopd then
 			player.chain = player.chain + 1
+			player.pausechain = 60
 			player.are = entrydl
 		end
 		end
@@ -1039,6 +1096,11 @@ function updateplayer(player)
 			player.dead = true
 			player.playsound.dead = true
 			player.piecey = player.piecey + 1
+		end
+		if player.blocksuntilnextlevel <= 0 then
+			player.playsound.levelup = true
+			player.blocksuntilnextlevel = player.blocksuntilnextlevel + 8
+			player.level = player.level + 1
 		end
 	end
 	if player.pieceactive == true and player.dead == false then
@@ -1253,6 +1315,7 @@ function updateplayer(player)
 		end
 		player.are = entrydl
 		player.chain = 0
+		player.blocksuntilnextlevel = player.blocksuntilnextlevel - 1
 	end
 end
 resettime = 300
@@ -1524,6 +1587,11 @@ function playersound(player)
 		player.playsound.chain = false
 		love.audio.stop(audaauda.chain)
 		love.audio.play(audaauda.chain)
+	end
+	if player.playsound.levelup then
+		player.playsound.levelup = false
+		love.audio.stop(audaauda.levelup)
+		love.audio.play(audaauda.levelup)
 	end
 	if player.playsound.dead then
 		player.playsound.dead = false

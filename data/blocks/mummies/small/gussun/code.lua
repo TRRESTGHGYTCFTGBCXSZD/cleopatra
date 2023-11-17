@@ -33,19 +33,26 @@ Create = function(animationstore)
 animationstore.Blink = math.random(180,280)
 animationstore.HU = 0
 animationstore.WAAAAA = 0
-animationstore.XVel = lerp(-3,3,math.random())
-animationstore.Yvel = lerp(8,128,math.random())
-animationstore.ScalVel = lerp(.2,.5,math.random())
-animationstore.X = 0
-animationstore.Y = 0
-animationstore.Scal = 0
+animationstore.Gussun = {}
+animationstore.Gussun.XVel = lerp(-3,3,math.random())
+animationstore.Gussun.YVel = lerp(-5,-9,math.random())
+animationstore.Gussun.ScalVel = lerp(.2,.5,math.random())
+animationstore.Gussun.X = 0
+animationstore.Gussun.Y = 0
+animationstore.Gussun.Scal = 0
 animationstore.Orientation = math.random() > 0.5
 end,
 Update = function(typeofblock,breaking,animationstore,posx,posy,playerdata)
 	animationstore.Blink = animationstore.Blink - 1
 	animationstore.HU = animationstore.HU - 1
-	if breaking and animationstore.WAAAAA <= 0 then
+	if breaking then
 		animationstore.WAAAAA = animationstore.WAAAAA + 1
+	end
+	if animationstore.WAAAAA > 30 then
+		animationstore.Gussun.X = animationstore.Gussun.X + animationstore.Gussun.XVel
+		animationstore.Gussun.Y = animationstore.Gussun.Y + animationstore.Gussun.YVel
+		animationstore.Gussun.YVel = animationstore.Gussun.YVel + .5
+		animationstore.Gussun.Scal = animationstore.Gussun.Scal + animationstore.Gussun.ScalVel
 	end
 	if posx and posy then
 		if playerdata.board[posy-1][posx] ~= nil and animationstore.HU < 4+4+10+12+6+6+6 then
@@ -60,14 +67,8 @@ Update = function(typeofblock,breaking,animationstore,posx,posy,playerdata)
 end,
 Draw = function(x,y,color,size,typeofblock,breaking,animationstore,posx,posy,playerdata)
 	if false then
-	elseif animationstore.WAAAAA > 30 then
-	animationstore.X = animationstore.X + animationstore.XVel
-	animationstore.Y = animationstore.Y + animationstore.YVel
-	animationstore.YVel = animationstore.YVel - 1
-	animationstore.Scal = animationstore.Scal + animationstore.ScalVel
-	love.graphics.draw(math.fmod(animationstore.WAAAAA,8) > 4 and gusun.owa2 or gusun.owa1,-16+x+animationstore.X,-32+y+animationstore.Y,0,size,size)
 	elseif animationstore.WAAAAA > 0 then
-	love.graphics.draw(math.fmod(animationstore.WAAAAA,8) > 4 and gusun.owa2 or gusun.owa1,-16+x,-32+y,0,size,size)
+	love.graphics.draw(math.fmod(animationstore.WAAAAA,8) > 4 and gusun.owa2 or gusun.owa1,-16+x+animationstore.Gussun.X,-32+y+animationstore.Gussun.Y,0,size,size)
 	
 	elseif animationstore.HU > 6+6+6+5+5 + 4+4+10+12+6+6+6 then
 	love.graphics.draw(gusun.hu1,(animationstore.Orientation and -16 or 48)+x,-32+y,0,size*(animationstore.Orientation and 1 or -1),size)
